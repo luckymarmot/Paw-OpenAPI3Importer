@@ -1,0 +1,102 @@
+openapi: 3.0.3
+info:
+  title: Untitled Paw Document
+  version: "1596784727917"
+paths:
+  /test/:
+    servers:
+      - url: https://example.com/
+    get:
+      operationId: f6507537-dd9a-4d81-ba1c-1b98a7c7ee3c
+      summary: Example request
+      description: >-
+        This is first example request with type "GET".
+
+        The base url is "https://example.com" and path is "/test".
+
+        It should be simple get with 2 URL params "a" and "b" with values same as their names.
+
+
+        Request has also 1 custom header "Forehead" with value "Clean"
+      responses:
+        default:
+          description: Default response
+      parameters:
+        - name: a
+          in: query
+          schema:
+            type: string
+            default: a
+        - name: b
+          in: query
+          schema:
+            type: string
+            default: b
+        - name: Forehead
+          in: header
+          schema:
+            type: string
+            default: Clean
+  "/user/{user_id}/limit/{limit}/":
+    servers:
+      - url: https://example.com/
+    post:
+      operationId: e3bf96da-239f-487c-b3d1-617c4f9ca6a8
+      summary: Example post request
+      description: >-
+        This is second example request ith type "POST".
+
+        The base url is "https://example.com" and path is "/user/{user_id}/limit/{limit}". The variable {limit} has set value 15 and is set as not required.
+
+
+        This request has set Basic Authorization with login "Admin" and password "VeryStrongPassword"
+
+
+        Request has also "text/plain" content in body with value "Body is here"
+      responses:
+        default:
+          description: Default response
+      requestBody:
+        content:
+          text/plain:
+            example:
+              value: Body is here
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+            default: Basic QWRtaW46VmVyeVN0cm9uZ1Bhc3N3b3Jk
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+            default: text/plain; charset=utf-8
+        - name: limit
+          in: path
+          required: true
+          example:
+            summary: NonRequired
+            value: true
+          schema:
+            type: string
+            default: "15"
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            default: ""
+      security:
+        - BasicAuth: []
+components:
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+  examples:
+    BasicAuth:
+      summary: Basic credentials
+      value:
+        username: Admin
+        password: VeryStrongPassword

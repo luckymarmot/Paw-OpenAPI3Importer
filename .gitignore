@@ -1,0 +1,5 @@
+node_modules
+dist
+src/__index.ts
+.DS_Store
+.idea
