@@ -5,6 +5,7 @@ import OpenAPI, { MapKeyedWithString } from '../../types-paw-api/openapi';
 import URL from '../url';
 import ParametersConverter from './components/parameters-converter';
 import AuthConverter from './components/auth-converter';
+import BodyConverter from './components/body-converter';
 
 export default class OpenAPIToPawConverter {
   private context: Paw.Context;
@@ -37,7 +38,8 @@ export default class OpenAPIToPawConverter {
           const authConverter = new AuthConverter(request, openApi);
           authConverter.attachAuthFromOperationToRequest(operation, parametersConverter);
 
-          this.parseBody(request, operation);
+          const bodyConverter = new BodyConverter(request);
+          bodyConverter.attachBodyFromOperationToRequest(operation);
         });
       });
     }
@@ -53,41 +55,16 @@ export default class OpenAPIToPawConverter {
   }
 
   private importBaseRequestToPaw(
-    method: string, fullUrl: string,
+    method: string,
+    fullUrl: string,
     operation: OpenAPI.OperationObject,
   ): Paw.Request {
     return this.context.createRequest(
-      operation.summary,
+      operation.summary ?? (operation.operationId ?? fullUrl),
       method,
       fullUrl,
       operation.description ?? null,
     );
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  private parseBody(request: Paw.Request, operation: OpenAPI.OperationObject) {
-    if ((operation?.requestBody as OpenAPI.RequestBodyObject)?.content) {
-      Object.entries((operation.requestBody as OpenAPI.RequestBodyObject).content)
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        .forEach(([contentType, mediaType]: [string, OpenAPI.MediaTypeObject]) => {
-          if ((mediaType.example as OpenAPI.ExampleObject)?.value) {
-            request.body = (mediaType.example as OpenAPI.ExampleObject).value;
-          }
-
-          /**
-           * @TODO
-           * probably needs to support other types of bodies as well
-           * - request.jsonBody
-           * - request.multipartBody
-           * - request.urlEncodedBody
-           */
-
-          /**
-           * @TODO
-           * probably some encoding needed here as well
-           */
-        });
-    }
   }
 
   static extractOperationsFromPathItem(

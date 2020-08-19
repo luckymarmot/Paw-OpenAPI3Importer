@@ -33,6 +33,18 @@ export default class ParametersConverter {
     }
   }
 
+  parseCookie(param: OpenAPI.ParameterObject): void {
+    let cookies = this.request.getHeaderByName('cookie');
+
+    if (!cookies) {
+      cookies = '';
+    }
+
+    cookies += `${(param as OpenAPI.ParameterObject).name}=${ParametersConverter.getValueFromParam(param)}; `;
+
+    this.request.addHeader('cookie', cookies);
+  }
+
   private parseQueryParam(param: OpenAPI.ParameterObject): void {
     this.request.addUrlParameter(
       (param as OpenAPI.ParameterObject).name,
@@ -50,11 +62,6 @@ export default class ParametersConverter {
       && (example as OpenAPI.ExampleObject).summary === NonRequiredLabel
       && (example as OpenAPI.ExampleObject).value === true
     ) {
-      /**
-       * @TODO
-       * this code is executed properly,
-       * but variable still is required in Paw -> needs to check why this is not working
-       */
       variable.required = false;
     }
   }
@@ -64,18 +71,6 @@ export default class ParametersConverter {
       (param as OpenAPI.ParameterObject).name,
       ParametersConverter.getValueFromParam(param),
     );
-  }
-
-  private parseCookie(param: OpenAPI.ParameterObject): void {
-    let cookies = this.request.getHeaderByName('cookie');
-
-    if (!cookies) {
-      cookies = '';
-    }
-
-    cookies += `${(param as OpenAPI.ParameterObject).name}=${ParametersConverter.getValueFromParam(param)}; `;
-
-    this.request.setHeader('cookie', cookies);
   }
 
   static getValueFromParam(param: OpenAPI.ParameterObject): string {

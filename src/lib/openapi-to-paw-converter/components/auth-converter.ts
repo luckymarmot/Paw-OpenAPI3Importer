@@ -29,13 +29,15 @@ export default class AuthConverter {
               if (securityScheme.type === 'http' && securityScheme.scheme === 'basic') {
                 this.parseHttpBasicAuth(authKey);
               } else if (securityScheme.type === 'http' && securityScheme.scheme === 'bearer') {
-                this.parseHttpBearerAuth(authKey);
+                this.parseHttpBearerAuth();
               } else if (securityScheme.type === 'apiKey') {
-                this.parseApiKeyAuth(authKey, parametersConverter);
+                this.parseApiKeyAuth(
+                  securityScheme.name,
+                  securityScheme.in,
+                  parametersConverter,
+                );
               } else if (securityScheme.type === 'oauth2') {
-                this.parseOAuth2Auth(authKey);
-              } else if (securityScheme.type === 'openIdConnect') {
-                this.parseOpenIdConnectAuth(authKey);
+                this.parseOAuth2Auth(securityScheme.flows);
               } else {
                 throw new Error('No security match found');
               }
@@ -73,33 +75,60 @@ export default class AuthConverter {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars,class-methods-use-this
-  private parseHttpBearerAuth(authKey: string): void {
-    /**
-     * @TODO
-     */
+  private parseHttpBearerAuth(): void {
+    let value = '';
+    const authHeader = this.request.getHeaderByName('authorization');
+    if (authHeader) {
+      value = (authHeader as string).replace(/bearer /i, '');
+    }
+
+    this.request.addHeader('Authorization', `Bearer ${value}`);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars,class-methods-use-this
-  private parseApiKeyAuth(authKey: string, parametersConverter: ParametersConverter): void {
-    /**
-     * @TODO
-     * in: cookie
-     * in: header
-     * in: query
-     */
+  private parseApiKeyAuth(
+    authName: string,
+    authIn: string,
+    parametersConverter: ParametersConverter,
+  ): void {
+    let value = '';
+
+    if (authIn === 'query') {
+      value = this.request.getUrlParameterByName(authName) as string;
+      this.request.addUrlParameter((authName || ''), (value || ''));
+    } else if (authIn === 'header') {
+      value = this.request.getHeaderByName(authName) as string;
+      this.request.addHeader((authName || ''), (value || ''));
+    } else if (authIn === 'cookie') {
+      parametersConverter.parseCookie({ name: authName, in: 'cookie', schema: { default: value } });
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars,class-methods-use-this
-  private parseOAuth2Auth(authKey: string): void {
-    /**
-     * @TODO
-     */
-  }
+  private parseOAuth2Auth(flows: OpenAPI.OAuthFlowsObject): void {
+    if (Object.keys(flows).length > 0) {
+      const grantType = Object.keys(flows)[0] as string;
+      if (
+        grantType === 'implicit'
+        || grantType === 'password'
+        || grantType === 'clientCredentials'
+        || grantType === 'authorizationCode'
+      ) {
+        const flow = flows[grantType] as OpenAPI.OAuthFlowObject;
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars,class-methods-use-this
-  private parseOpenIdConnectAuth(authKey: string): void {
-    /**
-     * @TODO
-     */
+        this.request.oauth2 = {
+          client_id: '',
+          client_secret: '',
+          authorization_uri: flow.authorizationUrl,
+          access_token_uri: flow.tokenUrl,
+          redirect_uri: '',
+          scope: JSON.stringify(flow.scopes),
+          state: undefined,
+          token: undefined,
+          token_prefix: undefined,
+          grant_type: grantType,
+        };
+      }
+    }
   }
 }
