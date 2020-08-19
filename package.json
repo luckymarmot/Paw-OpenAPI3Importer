@@ -4,7 +4,7 @@
   "description": "A Paw Extension to import OpenAPI 3.0 files into Paw",
   "main": "src/index.ts",
   "license": "MIT",
-  "repository": "git@studioauthentic.com:paw/Paw-OpenAPIImporter.git",
+  "repository": "git@github.com:luckymarmot/Paw-OpenAPI3Importer.git",
   "devDependencies": {
     "@babel/cli": "^7.7.0",
     "@babel/core": "^7.7.0",
