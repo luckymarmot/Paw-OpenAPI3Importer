@@ -17,12 +17,13 @@
     "@types/jest": "^24.0.22",
     "@types/node": "^12.12.5",
     "@types/yaml": "^1.9.7",
-    "@typescript-eslint/eslint-plugin": "^2.6.1",
-    "@typescript-eslint/parser": "^2.6.1",
+    "@typescript-eslint/eslint-plugin": "^3.6.1",
+    "@typescript-eslint/parser": "^3.6.1",
     "babel-loader": "^8.0.6",
     "eslint": "^6.6.0",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-config-airbnb-typescript": "^9.0.0",
     "eslint-config-prettier": "^6.5.0",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-jsx-a11y": "^6.3.1",
@@ -33,8 +34,7 @@
     "ts-jest": "^24.1.0",
     "typescript": "^3.6.4",
     "webpack": "^4.41.2",
-    "webpack-cli": "^3.3.10",
-    "yaml": "^1.10.0"
+    "webpack-cli": "^3.3.10"
   },
   "config": {
     "extension_name": "OpenAPIImporter",
@@ -48,8 +48,10 @@
     "archive": "webpack && cd ./dist && zip -r9X \"./$npm_package_config_extension_name\"\".zip\" \"./$npm_package_config_extension_identifier\"",
     "tsc": "tsc --noEmit",
     "test": "jest",
-    "archiveAndPaw": "echo $(date +'%T') && echo 'Processing...' && npm run --silent pawSilently && echo 'Archived and sent to Paw'",
-    "watch": "onchange 'src/**/*.ts' -- npm run --silent archiveAndPaw"
+    "buildAndPaw": "echo $(date +'%T') && echo 'Processing...' && npm run --silent pawSilently && echo 'Built and sent to Paw'",
+    "watch": "onchange 'src/**/*.ts' -- npm run --silent buildAndPaw"
   },
-  "dependencies": {}
+  "dependencies": {
+    "yaml": "^1.10.0"
+  }
 }
