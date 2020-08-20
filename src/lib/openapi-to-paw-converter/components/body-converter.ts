@@ -2,7 +2,6 @@
 import Paw from '../../../types-paw-api/paw';
 // eslint-disable-next-line import/extensions
 import OpenAPI, { MapKeyedWithString } from '../../../types-paw-api/openapi';
-import Console from '../../console';
 
 export default class BodyConverter {
   private request: Paw.Request;
