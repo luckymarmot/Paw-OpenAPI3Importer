@@ -76,13 +76,9 @@ export default class AuthConverter {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars,class-methods-use-this
   private parseHttpBearerAuth(): void {
-    let value = '';
-    const authHeader = this.request.getHeaderByName('authorization');
-    if (authHeader) {
-      value = (authHeader as string).replace(/bearer /i, '');
-    }
-
-    this.request.addHeader('Authorization', `Bearer ${value}`);
+    /**
+     * Nothing because headers are already parsed
+     */
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars,class-methods-use-this
