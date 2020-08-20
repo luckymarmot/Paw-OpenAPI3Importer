@@ -61,15 +61,41 @@ export default class URL {
     path: string,
   ): string {
     let url: string = '';
+    let server: OpenAPI.ServerObject = { url };
 
     if (pathItem.servers && pathItem.servers.length > 0) {
       url = pathItem.servers[0].url;
+      // eslint-disable-next-line prefer-destructuring
+      server = pathItem.servers[0];
     } else if (openApi.servers && openApi.servers.length > 0) {
       url = openApi.servers[0].url;
+      // eslint-disable-next-line prefer-destructuring
+      server = openApi.servers[0];
     } else {
       throw new Error('No url found');
     }
 
-    return `${URL.removeSlashFromEnd(url)}${path}`;
+    return `${
+      URL.replaceServerVariablesWithDefaults(
+        server,
+        URL.removeSlashFromEnd(
+          url,
+        ),
+      )
+    }${path}`;
+  }
+
+  static replaceServerVariablesWithDefaults(server: OpenAPI.ServerObject, url: string) {
+    if (server.variables) {
+      let newUrl = url;
+      Object.entries(server.variables).forEach(([variableName, variable]) => {
+        const variableValue = variable.default ?? variableName;
+        newUrl = newUrl.replace(`{${variableName}}`, variableValue);
+      });
+
+      return newUrl;
+    }
+
+    return url;
   }
 }
