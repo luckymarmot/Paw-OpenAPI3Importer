@@ -118,13 +118,17 @@ export default class AuthConverter {
           authorization_uri: flow.authorizationUrl,
           access_token_uri: flow.tokenUrl,
           redirect_uri: '',
-          scope: JSON.stringify(flow.scopes),
+          scope: Object.keys(flow.scopes).join(' '),
           state: undefined,
           token: undefined,
           token_prefix: undefined,
-          grant_type: grantType,
+          grant_type: AuthConverter.capitalToCamelCase(grantType),
         };
       }
     }
+  }
+
+  static capitalToCamelCase(string: string) {
+    return string.replace(/[A-Z]/g, (capitalLetter) => `_${capitalLetter.toLowerCase()}`);
   }
 }

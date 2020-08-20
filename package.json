@@ -44,7 +44,7 @@
   "scripts": {
     "build": "webpack",
     "paw": "webpack && cp -r \"./dist/$npm_package_config_extension_identifier\" \"${HOME}$npm_package_config_extensions_dir\"",
-    "pawSilently": "webpack --display=none && mkdir -p \"${HOME}$npm_package_config_extensions_dir\" && cp -r \"./dist/$npm_package_config_extension_identifier\" \"${HOME}$npm_package_config_extensions_dir\"",
+    "pawSilently": "webpack --display=errors-only && mkdir -p \"${HOME}$npm_package_config_extensions_dir\" && cp -r \"./dist/$npm_package_config_extension_identifier\" \"${HOME}$npm_package_config_extensions_dir\"",
     "archive": "webpack && cd ./dist && zip -r9X \"./$npm_package_config_extension_name\"\".zip\" \"./$npm_package_config_extension_identifier\"",
     "tsc": "tsc --noEmit",
     "test": "jest",
