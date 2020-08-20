@@ -20,7 +20,10 @@ export default class BodyConverter {
           if ((mediaType.example as OpenAPI.ExampleObject)?.value) {
             body = (mediaType.example as OpenAPI.ExampleObject).value;
           } else if (
-            Object.keys(mediaType.examples as MapKeyedWithString<OpenAPI.ExampleObject>).length > 0
+            mediaType.examples
+            && Object.keys(
+              mediaType.examples as MapKeyedWithString<OpenAPI.ExampleObject>,
+            ).length > 0
           ) {
             const { examples = {} } = mediaType;
             const firstExampleKey = Object.keys(examples)[0];
