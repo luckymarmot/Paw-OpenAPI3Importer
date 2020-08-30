@@ -42,7 +42,6 @@ class OpenAPIImporter implements Paw.Importer {
 
     items.forEach((item) => {
       let openApi: OpenAPI.OpenAPIObject;
-      const fileName = item.file?.name ?? 'OpenAPI 3.0 import';
 
       try {
         openApi = OpenAPIImporter.parseExtensionItem(item);
@@ -50,6 +49,7 @@ class OpenAPIImporter implements Paw.Importer {
         throw new Error('Invalid OpenAPI file');
       }
 
+      const fileName = openApi.info.title ?? item.file?.name ?? 'OpenAPI 3.0 import';
       this.converter.convert(openApi, fileName);
     });
 
