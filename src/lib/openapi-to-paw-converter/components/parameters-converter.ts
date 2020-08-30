@@ -46,15 +46,20 @@ export default class ParametersConverter {
   }
 
   private parseQueryParam(param: OpenAPI.ParameterObject): void {
-    this.request.addUrlParameter(
-      (param as OpenAPI.ParameterObject).name,
+    const variable = this.request.addVariable(
+      param.name,
       ParametersConverter.getValueFromParam(param),
+      param.description ?? '',
+    );
+    this.request.addUrlParameter(
+      param.name,
+      variable.createDynamicString(),
     );
   }
 
   private parsePathParam(param: OpenAPI.ParameterObject): void {
-    const variable = this.request.addVariable((param as OpenAPI.ParameterObject).name, ParametersConverter.getValueFromParam(param), '');
-    const example = ParametersConverter.getExampleFromParam(param as OpenAPI.ParameterObject);
+    const variable = this.request.addVariable(param.name, ParametersConverter.getValueFromParam(param), '');
+    const example = ParametersConverter.getExampleFromParam(param);
 
     if (
       example
