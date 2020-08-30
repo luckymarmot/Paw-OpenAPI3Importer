@@ -66,7 +66,11 @@ export default class ParametersConverter {
   }
 
   private parsePathParam(param: OpenAPI.ParameterObject): void {
-    const variable = this.request.addVariable(param.name, ParametersConverter.getValueFromParam(param), '');
+    const variable = this.request.addVariable(
+      param.name,
+      ParametersConverter.getValueFromParam(param),
+      param.description ?? ''
+    );
     const example = ParametersConverter.getExampleFromParam(param);
 
     if (
