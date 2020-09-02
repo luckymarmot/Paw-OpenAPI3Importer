@@ -46,15 +46,32 @@ export default class ParametersConverter {
   }
 
   private parseQueryParam(param: OpenAPI.ParameterObject): void {
-    this.request.addUrlParameter(
-      (param as OpenAPI.ParameterObject).name,
+    const variable = this.request.addVariable(
+      param.name,
       ParametersConverter.getValueFromParam(param),
+      param.description ?? '',
+    );
+
+    // convert schema
+    const schema = param.schema
+    if (schema && (schema as OpenAPI.SchemaObject).type) {
+      variable.schema = this.convertSchema(schema as OpenAPI.SchemaObject)
+    }
+
+    // add URL query parameter
+    this.request.addUrlParameter(
+      param.name,
+      variable.createDynamicString(),
     );
   }
 
   private parsePathParam(param: OpenAPI.ParameterObject): void {
-    const variable = this.request.addVariable((param as OpenAPI.ParameterObject).name, ParametersConverter.getValueFromParam(param), '');
-    const example = ParametersConverter.getExampleFromParam(param as OpenAPI.ParameterObject);
+    const variable = this.request.addVariable(
+      param.name,
+      ParametersConverter.getValueFromParam(param),
+      param.description ?? ''
+    );
+    const example = ParametersConverter.getExampleFromParam(param);
 
     if (
       example
@@ -87,5 +104,34 @@ export default class ParametersConverter {
     const { example = null } = (param as OpenAPI.ParameterObject);
 
     return example;
+  }
+
+  private convertSchema(schema: OpenAPI.SchemaObject): string {
+    // Schema
+    // https://swagger.io/specification/#schema-object
+    // The following properties are taken directly from the JSON Schema definition and follow the same specifications: [...]
+    // Keep only the properties that are compatible with the JSON Schema spec.
+    const pawSchema: Partial<OpenAPI.SchemaObject> = {
+      ...(schema.title ? { title: schema.title } : {}),
+      ...(schema.multipleOf ? { multipleOf: schema.multipleOf } : {}),
+      ...(schema.maximum ? { maximum: schema.maximum } : {}),
+      ...(schema.exclusiveMaximum ? { exclusiveMaximum: schema.exclusiveMaximum } : {}),
+      ...(schema.minimum ? { minimum: schema.minimum } : {}),
+      ...(schema.exclusiveMinimum ? { exclusiveMinimum: schema.exclusiveMinimum } : {}),
+      ...(schema.maxLength ? { maxLength: schema.maxLength } : {}),
+      ...(schema.minLength ? { minLength: schema.minLength } : {}),
+      ...(schema.pattern ? { pattern: schema.pattern } : {}),
+      ...(schema.maxItems ? { maxItems: schema.maxItems } : {}),
+      ...(schema.minItems ? { minItems: schema.minItems } : {}),
+      ...(schema.uniqueItems ? { uniqueItems: schema.uniqueItems } : {}),
+      ...(schema.maxProperties ? { maxProperties: schema.maxProperties } : {}),
+      ...(schema.minProperties ? { minProperties: schema.minProperties } : {}),
+      ...(schema.required ? { required: schema.required } : {}),
+      ...(schema.enum ? { enum: schema.enum } : {}),
+    }
+    if (Object.keys(pawSchema).length === 0) {
+      return ''
+    }
+    return JSON.stringify(pawSchema, null, 2)
   }
 }
