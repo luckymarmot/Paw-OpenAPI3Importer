@@ -27,16 +27,19 @@ paths:
           schema:
             type: string
             default: a
+            description: Query a param
         - name: b
           in: query
           schema:
             type: string
             default: b
+            description: Query b param
         - name: Forehead
           in: header
           schema:
             type: string
             default: Clean
+            description: Forehead header parameter
   "/user/{user_id}/limit/{limit}/":
     servers:
       - url: https://example.com/

@@ -49,7 +49,7 @@ export default class ParametersConverter {
     const variable = this.request.addVariable(
       param.name,
       ParametersConverter.getValueFromParam(param),
-      param.description ?? '',
+      param.description ?? (param.schema as OpenAPI.SchemaObject)?.description ?? '',
     );
 
     // convert schema
@@ -69,7 +69,7 @@ export default class ParametersConverter {
     const variable = this.request.addVariable(
       param.name,
       ParametersConverter.getValueFromParam(param),
-      param.description ?? '',
+      param.description ?? (param.schema as OpenAPI.SchemaObject)?.description ?? '',
     );
     const example = ParametersConverter.getExampleFromParam(param);
 
@@ -84,9 +84,20 @@ export default class ParametersConverter {
   }
 
   private parseHeader(param: OpenAPI.ParameterObject): void {
+    const variable = this.request.addVariable(
+      param.name,
+      ParametersConverter.getValueFromParam(param),
+      param.description ?? (param.schema as OpenAPI.SchemaObject)?.description ?? '',
+    );
+
+    const { schema } = param;
+    if (schema && (schema as OpenAPI.SchemaObject).type) {
+      variable.schema = this.convertSchema(schema as OpenAPI.SchemaObject);
+    }
+
     this.request.addHeader(
       (param as OpenAPI.ParameterObject).name,
-      ParametersConverter.getValueFromParam(param),
+      variable.createDynamicString(),
     );
   }
 
