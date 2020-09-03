@@ -53,9 +53,9 @@ export default class ParametersConverter {
     );
 
     // convert schema
-    const schema = param.schema
+    const { schema } = param;
     if (schema && (schema as OpenAPI.SchemaObject).type) {
-      variable.schema = this.convertSchema(schema as OpenAPI.SchemaObject)
+      variable.schema = this.convertSchema(schema as OpenAPI.SchemaObject);
     }
 
     // add URL query parameter
@@ -69,7 +69,7 @@ export default class ParametersConverter {
     const variable = this.request.addVariable(
       param.name,
       ParametersConverter.getValueFromParam(param),
-      param.description ?? ''
+      param.description ?? '',
     );
     const example = ParametersConverter.getExampleFromParam(param);
 
@@ -106,10 +106,12 @@ export default class ParametersConverter {
     return example;
   }
 
+  // eslint-disable-next-line class-methods-use-this
   private convertSchema(schema: OpenAPI.SchemaObject): string {
     // Schema
     // https://swagger.io/specification/#schema-object
-    // The following properties are taken directly from the JSON Schema definition and follow the same specifications: [...]
+    // The following properties are taken directly from the JSON Schema definition
+    // and follow the same specifications: [...]
     // Keep only the properties that are compatible with the JSON Schema spec.
     const pawSchema: Partial<OpenAPI.SchemaObject> = {
       ...(schema.title ? { title: schema.title } : {}),
@@ -128,10 +130,10 @@ export default class ParametersConverter {
       ...(schema.minProperties ? { minProperties: schema.minProperties } : {}),
       ...(schema.required ? { required: schema.required } : {}),
       ...(schema.enum ? { enum: schema.enum } : {}),
-    }
+    };
     if (Object.keys(pawSchema).length === 0) {
-      return ''
+      return '';
     }
-    return JSON.stringify(pawSchema, null, 2)
+    return JSON.stringify(pawSchema, null, 2);
   }
 }

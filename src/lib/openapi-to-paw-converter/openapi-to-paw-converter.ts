@@ -36,7 +36,7 @@ export default class OpenAPIToPawConverter {
           parametersConverter.attachParametersFromOperationToRequest(operation);
 
           const authConverter = new AuthConverter(request, openApi);
-          authConverter.attachAuthFromOperationToRequest(operation, parametersConverter);
+          authConverter.attachAuthFromOperationToRequest(operation);
 
           const bodyConverter = new BodyConverter(request);
           bodyConverter.attachBodyFromOperationToRequest(operation);

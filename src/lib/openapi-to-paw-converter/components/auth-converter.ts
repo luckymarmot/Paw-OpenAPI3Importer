@@ -2,7 +2,8 @@
 import Paw from '../../../types-paw-api/paw';
 // eslint-disable-next-line import/extensions
 import OpenAPI, { BasicCredentialsLabel } from '../../../types-paw-api/openapi';
-import ParametersConverter from './parameters-converter';
+// import ParametersConverter from './parameters-converter';
+import Console from '../../console';
 
 export default class AuthConverter {
   private request: Paw.Request;
@@ -16,7 +17,6 @@ export default class AuthConverter {
 
   attachAuthFromOperationToRequest(
     operation: OpenAPI.OperationObject,
-    parametersConverter: ParametersConverter,
   ): void {
     if (operation.security && operation.security.length > 0) {
       operation.security.forEach((securityRequirement) => {
@@ -28,18 +28,17 @@ export default class AuthConverter {
 
               if (securityScheme.type === 'http' && securityScheme.scheme === 'basic') {
                 this.parseHttpBasicAuth(authKey);
-              } else if (securityScheme.type === 'http' && securityScheme.scheme === 'bearer') {
-                this.parseHttpBearerAuth();
-              } else if (securityScheme.type === 'apiKey') {
-                this.parseApiKeyAuth(
-                  securityScheme.name,
-                  securityScheme.in,
-                  parametersConverter,
-                );
               } else if (securityScheme.type === 'oauth2') {
                 this.parseOAuth2Auth(securityScheme.flows);
+              } else if (
+                (securityScheme.type === 'http' && securityScheme.scheme === 'bearer')
+                || securityScheme.type === 'apiKey'
+              ) {
+                /**
+                 * do nothing - credentials should be already parsed by ParametersConverter
+                 */
               } else {
-                throw new Error('No security match found');
+                Console.error('No security match found');
               }
             }
           });
@@ -72,32 +71,6 @@ export default class AuthConverter {
     }
 
     this.request.httpBasicAuth = { username, password };
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars,class-methods-use-this
-  private parseHttpBearerAuth(): void {
-    /**
-     * Nothing because headers are already parsed
-     */
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars,class-methods-use-this
-  private parseApiKeyAuth(
-    authName: string,
-    authIn: string,
-    parametersConverter: ParametersConverter,
-  ): void {
-    let value = '';
-
-    if (authIn === 'query') {
-      value = this.request.getUrlParameterByName(authName) as string;
-      this.request.addUrlParameter((authName || ''), (value || ''));
-    } else if (authIn === 'header') {
-      value = this.request.getHeaderByName(authName) as string;
-      this.request.addHeader((authName || ''), (value || ''));
-    } else if (authIn === 'cookie') {
-      parametersConverter.parseCookie({ name: authName, in: 'cookie', schema: { default: value } });
-    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars,class-methods-use-this

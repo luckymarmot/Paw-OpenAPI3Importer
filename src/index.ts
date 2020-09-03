@@ -1,4 +1,3 @@
-/* eslint-disable */
 import Yaml from 'yaml';
 // eslint-disable-next-line import/extensions
 import Paw from './types-paw-api/paw';
@@ -17,7 +16,7 @@ class OpenAPIImporter implements Paw.Importer {
   public canImport(context: Paw.Context, items: Paw.ExtensionItem[]): number {
     return items.reduce((acc, item) => {
       try {
-        const openApi = OpenAPIImporter.parseExtensionItem(item);
+        const openApi = this.parseExtensionItem(item);
 
         return (
           openApi.openapi.substr(0, 3) === '3.0' // allowed versions 3.0.*
@@ -44,7 +43,7 @@ class OpenAPIImporter implements Paw.Importer {
       let openApi: OpenAPI.OpenAPIObject;
 
       try {
-        openApi = OpenAPIImporter.parseExtensionItem(item);
+        openApi = this.parseExtensionItem(item);
       } catch (error) {
         throw new Error('Invalid OpenAPI file');
       }
@@ -56,7 +55,8 @@ class OpenAPIImporter implements Paw.Importer {
     return true;
   }
 
-  static parseExtensionItem(item: Paw.ExtensionItem): OpenAPI.OpenAPIObject {
+  // eslint-disable-next-line class-methods-use-this
+  private parseExtensionItem(item: Paw.ExtensionItem): OpenAPI.OpenAPIObject {
     if (item.mimeType === 'application/json') {
       return JSON.parse(item.content) as OpenAPI.OpenAPIObject;
     }

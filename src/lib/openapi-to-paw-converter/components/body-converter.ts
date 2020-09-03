@@ -2,6 +2,7 @@
 import Paw from '../../../types-paw-api/paw';
 // eslint-disable-next-line import/extensions
 import OpenAPI, { MapKeyedWithString } from '../../../types-paw-api/openapi';
+import Console from '../../console';
 
 export default class BodyConverter {
   private request: Paw.Request;
@@ -60,6 +61,15 @@ export default class BodyConverter {
   }
 
   static parseToJsonIfString(value: any): object | MapKeyedWithString<string> {
-    return typeof value !== 'string' ? value : JSON.parse(value);
+    if (typeof value !== 'string') {
+      return value;
+    }
+
+    try {
+      return JSON.parse(value);
+    } catch (e) {
+      Console.error('Error while parsing JSON body', e);
+      return { value };
+    }
   }
 }

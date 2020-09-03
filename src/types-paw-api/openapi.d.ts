@@ -6,6 +6,7 @@
 export type MapKeyedWithString<T> = {[key: string] : T};
 export const NonRequiredLabel = 'NonRequired';
 export const BasicCredentialsLabel = 'Basic credentials';
+export const OAuth2CredentialsLabel = 'OAuth2';
 
 /**
  * OpenAPI format
