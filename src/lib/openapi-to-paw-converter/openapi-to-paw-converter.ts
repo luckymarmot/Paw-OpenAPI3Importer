@@ -2,19 +2,23 @@
 import Paw from '../../types-paw-api/paw';
 // eslint-disable-next-line import/extensions
 import OpenAPI, { MapKeyedWithString } from '../../types-paw-api/openapi';
+import EnvironmentManager from '../environment-manager';
 import URL from '../url';
-import ParametersConverter from './components/parameters-converter';
 import AuthConverter from './components/auth-converter';
+import ParametersConverter from './components/parameters-converter';
 import BodyConverter from './components/body-converter';
 
 export default class OpenAPIToPawConverter {
-  private context: Paw.Context;
+  private readonly context: Paw.Context;
 
   private readonly requestGroups: MapKeyedWithString<Paw.RequestGroup>;
+
+  private readonly envManagers: MapKeyedWithString<EnvironmentManager>;
 
   constructor(context: Paw.Context) {
     this.context = context;
     this.requestGroups = {};
+    this.envManagers = {};
   }
 
   convert(openApi: OpenAPI.OpenAPIObject, sourceFileName: string) {
@@ -25,15 +29,24 @@ export default class OpenAPIToPawConverter {
         Object.entries(operations).forEach((
           [method, operation]: [string, OpenAPI.OperationObject],
         ) => {
+          const envManager = this.getEnvManager(sourceFileName);
+
           const upperCasedMethod = method.toUpperCase();
-          const fullUrl = URL.getFullUrlFromOpenAPI(pathItem, openApi, pathName);
+          const url = new URL(pathItem, openApi, pathName, envManager);
 
           const requestGroup = this.getRequestGroup(sourceFileName);
-          const request = this.importBaseRequestToPaw(upperCasedMethod, fullUrl, operation);
+          const request = this.importBaseRequestToPaw(
+            upperCasedMethod,
+            url.fullUrl as DynamicString,
+            operation,
+          );
           requestGroup.appendChild(request);
 
-          const parametersConverter = new ParametersConverter(request);
+          const parametersConverter = new ParametersConverter(request, envManager);
           parametersConverter.attachParametersFromOperationToRequest(operation);
+          if (url.serverVariables) {
+            parametersConverter.attachParametersFromServerVariables(url.serverVariables);
+          }
 
           const authConverter = new AuthConverter(request, openApi);
           authConverter.attachAuthFromOperationToRequest(operation);
@@ -43,6 +56,18 @@ export default class OpenAPIToPawConverter {
         });
       });
     }
+  }
+
+  private getEnvManager(sourceFileName: string): EnvironmentManager {
+    if (typeof this.envManagers[sourceFileName] === 'undefined') {
+      const formattedGroupName = sourceFileName.replace(/\.json|\.yaml/i, '');
+      this.envManagers[formattedGroupName] = new EnvironmentManager(
+        this.context,
+        formattedGroupName,
+      );
+    }
+
+    return this.envManagers[sourceFileName];
   }
 
   private getRequestGroup(sourceFileName: string): Paw.RequestGroup {
@@ -56,11 +81,11 @@ export default class OpenAPIToPawConverter {
 
   private importBaseRequestToPaw(
     method: string,
-    fullUrl: string,
+    fullUrl: DynamicString|string,
     operation: OpenAPI.OperationObject,
   ): Paw.Request {
     return this.context.createRequest(
-      operation.summary ?? (operation.operationId ?? fullUrl),
+      operation.summary ?? (operation.operationId ?? fullUrl as string),
       method,
       fullUrl,
       operation.description ?? null,

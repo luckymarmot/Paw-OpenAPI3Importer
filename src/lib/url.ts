@@ -1,5 +1,7 @@
 // eslint-disable-next-line import/extensions
-import OpenAPI from '../types-paw-api/openapi';
+import OpenAPI, { MapKeyedWithString } from '../types-paw-api/openapi';
+import EnvironmentManager from './environment-manager';
+import { convertEnvString } from './paw-utils';
 
 export default class URL {
   hostname: string;
@@ -8,12 +10,40 @@ export default class URL {
 
   port: string;
 
-  fullUrl: string;
+  fullUrl: string | DynamicString;
 
-  constructor(url: string) {
-    this.fullUrl = url;
+  serverVariables: MapKeyedWithString<OpenAPI.ServerVariableObject>;
 
-    const match = url.match(/^([^:]+):\/\/([^:/]+)(?::([0-9]*))?(?:(\/.*))?$/i);
+  constructor(
+    pathItem: OpenAPI.PathItemObject,
+    openApi: OpenAPI.OpenAPIObject,
+    pathName: string,
+    envManager: EnvironmentManager,
+  ) {
+    let server: OpenAPI.ServerObject = { url: '' };
+    let match: RegExpMatchArray|null = [];
+
+    if (pathItem.servers && pathItem.servers.length > 0) {
+      this.fullUrl = `${URL.removeSlashFromEnd(pathItem.servers[0].url)}${pathName}`;
+      // eslint-disable-next-line prefer-destructuring
+      server = pathItem.servers[0];
+    } else if (openApi.servers && openApi.servers.length > 0) {
+      this.fullUrl = `${URL.removeSlashFromEnd(openApi.servers[0].url)}${pathName}`;
+      // eslint-disable-next-line prefer-destructuring
+      server = openApi.servers[0];
+    }
+
+    if (server.variables) {
+      this.serverVariables = server.variables;
+    }
+
+    this.fullUrl = convertEnvString(this.fullUrl as string, envManager);
+
+    if (typeof this.fullUrl === 'string') {
+      match = this.fullUrl.match(/^([^:]+):\/\/([^:/]+)(?::([0-9]*))?(?:(\/.*))?$/i);
+    } else {
+      match = (this.fullUrl as DynamicString).getEvaluatedString().match(/^([^:]+):\/\/([^:/]+)(?::([0-9]*))?(?:(\/.*))?$/i);
+    }
 
     if (match) {
       if (match[2]) {
@@ -32,7 +62,7 @@ export default class URL {
       }
 
       if (match[4]) {
-        this.pathname = URL.addSlashAtEnd(match[4]);
+        this.pathname = URL.addSlashAtEnd(match[4]).replace(new RegExp('//', 'g'), '/');
       } else {
         this.pathname = '/';
       }
@@ -53,49 +83,5 @@ export default class URL {
     }
 
     return variable;
-  }
-
-  static getFullUrlFromOpenAPI(
-    pathItem: OpenAPI.PathItemObject,
-    openApi: OpenAPI.OpenAPIObject,
-    path: string,
-  ): string {
-    let url: string = '';
-    let server: OpenAPI.ServerObject = { url };
-
-    if (pathItem.servers && pathItem.servers.length > 0) {
-      url = pathItem.servers[0].url;
-      // eslint-disable-next-line prefer-destructuring
-      server = pathItem.servers[0];
-    } else if (openApi.servers && openApi.servers.length > 0) {
-      url = openApi.servers[0].url;
-      // eslint-disable-next-line prefer-destructuring
-      server = openApi.servers[0];
-    } else {
-      throw new Error('No url found');
-    }
-
-    return `${
-      URL.replaceServerVariablesWithDefaults(
-        server,
-        URL.removeSlashFromEnd(
-          url,
-        ),
-      )
-    }${path}`;
-  }
-
-  static replaceServerVariablesWithDefaults(server: OpenAPI.ServerObject, url: string) {
-    if (server.variables) {
-      let newUrl = url;
-      Object.entries(server.variables).forEach(([variableName, variable]) => {
-        const variableValue = variable.default ?? variableName;
-        newUrl = newUrl.replace(`{${variableName}}`, variableValue);
-      });
-
-      return newUrl;
-    }
-
-    return url;
   }
 }

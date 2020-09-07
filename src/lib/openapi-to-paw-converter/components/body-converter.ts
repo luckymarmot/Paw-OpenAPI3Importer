@@ -26,7 +26,7 @@ export default class BodyConverter {
               mediaType.examples as MapKeyedWithString<OpenAPI.ExampleObject>,
             ).length > 0
           ) {
-            const { examples = {} } = mediaType;
+            const { examples } = mediaType;
             const firstExampleKey = Object.keys(examples)[0];
             if ((examples[firstExampleKey] as OpenAPI.ExampleObject).value) {
               body = (examples[firstExampleKey] as OpenAPI.ExampleObject).value;

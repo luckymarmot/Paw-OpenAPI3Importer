@@ -1,13 +1,18 @@
 // eslint-disable-next-line import/extensions
 import Paw from '../../../types-paw-api/paw';
 // eslint-disable-next-line import/extensions
-import OpenAPI, { NonRequiredLabel } from '../../../types-paw-api/openapi';
+import OpenAPI, { MapKeyedWithString, NonRequiredLabel } from '../../../types-paw-api/openapi';
+import EnvironmentManager from '../../environment-manager';
+import { convertEnvString } from '../../paw-utils';
 
 export default class ParametersConverter {
   private request: Paw.Request;
 
-  constructor(request: Paw.Request) {
+  private readonly envManager: EnvironmentManager;
+
+  constructor(request: Paw.Request, envManager: EnvironmentManager) {
     this.request = request;
+    this.envManager = envManager;
   }
 
   attachParametersFromOperationToRequest(operation: OpenAPI.OperationObject) {
@@ -23,9 +28,6 @@ export default class ParametersConverter {
           case 'header':
             this.parseHeader(param as OpenAPI.ParameterObject);
             break;
-          case 'cookie':
-            this.parseCookie(param as OpenAPI.ParameterObject);
-            break;
           default:
             // nothing
         }
@@ -33,42 +35,55 @@ export default class ParametersConverter {
     }
   }
 
-  parseCookie(param: OpenAPI.ParameterObject): void {
-    let cookies = this.request.getHeaderByName('cookie');
+  attachParametersFromServerVariables(
+    serverVariables: MapKeyedWithString<OpenAPI.ServerVariableObject>,
+  ) {
+    Object.entries(serverVariables).forEach(([variableName, variable]) => {
+      const variableValue = variable.default ?? variableName;
+      this.envManager.setEnvironmentVariableValue(variableName, variableValue);
 
-    if (!cookies) {
-      cookies = '';
-    }
-
-    cookies += `${(param as OpenAPI.ParameterObject).name}=${ParametersConverter.getValueFromParam(param)}; `;
-
-    this.request.addHeader('cookie', cookies);
+      this.request.addVariable(
+        variableName,
+        this.envManager.getDynamicString(variableName),
+        variable.description ?? '',
+      );
+    });
   }
 
   private parseQueryParam(param: OpenAPI.ParameterObject): void {
+    const paramValue = convertEnvString(
+      ParametersConverter.getValueFromParam(param),
+      this.envManager,
+    );
+
     const variable = this.request.addVariable(
       param.name,
-      ParametersConverter.getValueFromParam(param),
+      paramValue,
       param.description ?? (param.schema as OpenAPI.SchemaObject)?.description ?? '',
     );
 
-    // convert schema
     const { schema } = param;
     if (schema && (schema as OpenAPI.SchemaObject).type) {
       variable.schema = this.convertSchema(schema as OpenAPI.SchemaObject);
     }
 
-    // add URL query parameter
-    this.request.addUrlParameter(
-      param.name,
-      variable.createDynamicString(),
-    );
+    if (!this.request.getUrlParameterByName(param.name)) {
+      this.request.addUrlParameter(
+        param.name,
+        paramValue,
+      );
+    }
   }
 
   private parsePathParam(param: OpenAPI.ParameterObject): void {
-    const variable = this.request.addVariable(
+    this.envManager.setEnvironmentVariableValue(
       param.name,
       ParametersConverter.getValueFromParam(param),
+    );
+
+    const variable = this.request.addVariable(
+      param.name,
+      this.envManager.getDynamicString(param.name),
       param.description ?? (param.schema as OpenAPI.SchemaObject)?.description ?? '',
     );
     const example = ParametersConverter.getExampleFromParam(param);
@@ -81,12 +96,23 @@ export default class ParametersConverter {
     ) {
       variable.required = false;
     }
+
+    // // convert schema
+    const { schema } = param;
+    if (schema && (schema as OpenAPI.SchemaObject).type) {
+      variable.schema = this.convertSchema(schema as OpenAPI.SchemaObject);
+    }
   }
 
   private parseHeader(param: OpenAPI.ParameterObject): void {
+    const headerValue = convertEnvString(
+      ParametersConverter.getValueFromParam(param),
+      this.envManager,
+    );
+
     const variable = this.request.addVariable(
       param.name,
-      ParametersConverter.getValueFromParam(param),
+      headerValue,
       param.description ?? (param.schema as OpenAPI.SchemaObject)?.description ?? '',
     );
 
@@ -95,10 +121,12 @@ export default class ParametersConverter {
       variable.schema = this.convertSchema(schema as OpenAPI.SchemaObject);
     }
 
-    this.request.addHeader(
-      (param as OpenAPI.ParameterObject).name,
-      variable.createDynamicString(),
-    );
+    if (!this.request.getHeaderByName(param.name)) {
+      this.request.addHeader(
+        (param as OpenAPI.ParameterObject).name,
+        headerValue,
+      );
+    }
   }
 
   static getValueFromParam(param: OpenAPI.ParameterObject): string {
