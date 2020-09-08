@@ -40,12 +40,12 @@ export default class BodyConverter {
                 break;
               case 'application/x-www-form-urlencoded':
                 this.request.urlEncodedBody = (
-                  BodyConverter.parseToJsonIfString(body) as MapKeyedWithString<string>
+                  BodyConverter.parseToKeyValueMap(body) as MapKeyedWithString<string>
                 );
                 break;
               case 'multipart/form-data':
                 this.request.multipartBody = (
-                  BodyConverter.parseToJsonIfString(body) as MapKeyedWithString<string>
+                  BodyConverter.parseToKeyValueMap(body) as MapKeyedWithString<string>
                 );
                 break;
               default:
@@ -60,7 +60,7 @@ export default class BodyConverter {
     return typeof value !== 'string' ? value : JSON.stringify(value);
   }
 
-  static parseToJsonIfString(value: any): object | MapKeyedWithString<string> {
+  static parseToJsonIfString(value: any): object|MapKeyedWithString<string> {
     if (typeof value !== 'string') {
       return value;
     }
@@ -71,5 +71,22 @@ export default class BodyConverter {
       Console.error('Error while parsing JSON body', e);
       return { value };
     }
+  }
+
+  static parseToKeyValueMap(values: any): MapKeyedWithString<string|DynamicString> {
+    const pawParams: { [key:string]: string|DynamicString } = {};
+
+    if (Array.isArray(values)) {
+      values.forEach((param) => {
+        const key: string = (param.key || '');
+        pawParams[key] = (param.value || '');
+      });
+    } else if (typeof values === 'object') {
+      Object.entries(values).forEach(([key, value]: [string, string]) => {
+        pawParams[key] = value;
+      });
+    }
+
+    return pawParams;
   }
 }
