@@ -2,6 +2,8 @@
 import OpenAPI, { MapKeyedWithString } from '../types-paw-api/openapi';
 import EnvironmentManager from './environment-manager';
 import { convertEnvString } from './paw-utils';
+import Console from "./console";
+import {Request} from "../types-paw-api/paw";
 
 export default class URL {
   hostname: string;
@@ -19,6 +21,7 @@ export default class URL {
     openApi: OpenAPI.OpenAPIObject,
     pathName: string,
     envManager: EnvironmentManager,
+    request: Request
   ) {
     let server: OpenAPI.ServerObject = { url: '' };
     let match: RegExpMatchArray|null = [];
@@ -33,11 +36,13 @@ export default class URL {
       server = openApi.servers[0];
     }
 
+
+
     if (server.variables) {
       this.serverVariables = server.variables;
     }
 
-    this.fullUrl = convertEnvString(this.fullUrl as string, envManager);
+    this.fullUrl = convertEnvString(this.fullUrl as string, envManager, '', request);
 
     if (typeof this.fullUrl === 'string') {
       match = this.fullUrl.match(/^([^:]+):\/\/([^:/]+)(?::([0-9]*))?(?:(\/.*))?$/i);
