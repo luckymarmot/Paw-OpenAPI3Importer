@@ -52,9 +52,10 @@ export default class ParametersConverter {
     }
 
     private parseQueryParam(param: OpenAPI.ParameterObject): void {
+        const value = ParametersConverter.getValueFromParam(param)
         const variable = this.request.addVariable(
             param.name,
-            new DynamicString(ParametersConverter.getValueFromParam(param)),
+            (value || ''),
             param.description ?? (param.schema as OpenAPI.SchemaObject)?.description ?? '',
         );
 
@@ -83,7 +84,7 @@ export default class ParametersConverter {
 
         const variable = this.request.addVariable(
             param.name,
-            new DynamicString(defaultValue),
+            (defaultValue ?? ''),
             param.description ?? (param.schema as OpenAPI.SchemaObject)?.description ?? '',
         );
 
@@ -106,9 +107,10 @@ export default class ParametersConverter {
     }
 
     private parseHeader(param: OpenAPI.ParameterObject): void {
+        const value = ParametersConverter.getValueFromParam(param)
         const variable = this.request.addVariable(
             param.name,
-            new DynamicString(ParametersConverter.getValueFromParam(param)),
+            (value ?? ''),
             param.description ?? (param.schema as OpenAPI.SchemaObject)?.description ?? '',
         );
 
