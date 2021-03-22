@@ -1,7 +1,7 @@
 declare global {
-  class Paw {
-    static log(args: unknown[]): unknown[]
-  }
+  // class Paw {
+  //   static log(args: unknown[]): unknown[]
+  // }
 
   function registerImporter(importer: any): void
 
@@ -66,7 +66,7 @@ declare global {
   }
 }
 
-declare namespace Paw2 {
+declare namespace Paw {
   interface RuntimeInfo {
     task: string
     isMainThread: boolean
@@ -396,4 +396,4 @@ declare namespace Paw2 {
   }
 }
 
-export default Paw2
+export default Paw
