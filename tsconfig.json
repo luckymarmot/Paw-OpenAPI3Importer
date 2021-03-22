@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "resolveJsonModule": true,
     "outDir": "./dist/",
     "sourceMap": true,
     "noImplicitAny": true,
@@ -10,9 +11,18 @@
     "esModuleInterop": true,
     "strictNullChecks": true,
     "noEmit": true,
-    "removeComments": true
+    "baseUrl": "src",
+    "typeRoots": ["src/types"],
+    "paths": {
+      "~*": ["*"],
+      "lib": ["src/lib"],
+      "types": ["src/types"]
+    },
+    "noErrorTruncation": true,
+    "skipLibCheck": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "pretty": true
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": ["src", "paw.config.json"]
 }
