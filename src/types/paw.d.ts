@@ -19,7 +19,7 @@ declare global {
   }
 
   class DynamicValue {
-    type: string
+    public type: string
     constructor(type: string, properties?: { [key: string]: any })
     getEvaluatedString(): string
     copy(): DynamicValue

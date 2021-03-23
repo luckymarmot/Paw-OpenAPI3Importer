@@ -26,6 +26,7 @@ const config = {
     alias: {
       types: path.resolve(__dirname, 'src/types'),
       lib: path.resolve(__dirname, 'src/lib'),
+      utils: path.resolve(__dirname, 'src/utils'),
     },
     extensions: ['.ts', '.js', '.d.ts'],
   },

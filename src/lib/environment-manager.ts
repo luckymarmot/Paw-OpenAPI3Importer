@@ -8,11 +8,8 @@ import { MapKeyedWithString } from 'types/openapi'
 
 class EnvironmentManager {
   private readonly name: string
-
   private readonly envName: string
-
   private context: Paw.Context
-
   private environmentDomain: Paw.EnvironmentDomain | null
 
   constructor(context: Paw.Context, name?: string | null) {
