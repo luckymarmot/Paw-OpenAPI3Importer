@@ -1,8 +1,13 @@
 declare global {
   function registerImporter(importer: any): void
   function registerCodeGenerator(generator: any): void
-  type DynamicStringComponent = string | DynamicValue
 
+  interface Logger {
+    log: (..._args: unknown[]) => void
+    info: (..._args: unknown[]) => void
+  }
+
+  type DynamicStringComponent = string | DynamicValue
   class DynamicString {
     length: number
     components: DynamicStringComponent[]
