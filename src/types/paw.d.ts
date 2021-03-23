@@ -1,12 +1,6 @@
 declare global {
-  // class Paw {
-  //   static log(args: unknown[]): unknown[]
-  // }
-
   function registerImporter(importer: any): void
-
   function registerCodeGenerator(generator: any): void
-
   type DynamicStringComponent = string | DynamicValue
 
   class DynamicString {
