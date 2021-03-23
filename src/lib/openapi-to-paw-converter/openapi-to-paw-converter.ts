@@ -1,7 +1,13 @@
-// eslint-disable-next-line import/extensions
 import Paw from 'types/paw'
-// eslint-disable-next-line import/extensions
+
+/**
+ * @deprecated
+ * OpenAPI - manual type declaraion of openapi typinggs
+ * OpenAPIV3 - utilize openapi types instead
+ */
 import OpenAPI, { MapKeyedWithString } from 'types/openapi'
+import { OpenAPIV3 } from 'openapi-types'
+
 import EnvironmentManager from 'lib/environment-manager'
 import URL from 'lib/url'
 import AuthConverter from './components/auth-converter'
@@ -48,7 +54,7 @@ export default class OpenAPIToPawConverter {
               envManager,
             )
             parametersConverter.attachParametersFromOperationToRequest(
-              operation,
+              operation as {},
             )
 
             const url = new URL(
@@ -67,11 +73,18 @@ export default class OpenAPIToPawConverter {
               )
             }
 
-            const authConverter = new AuthConverter(request, openApi)
-            authConverter.attachAuthFromOperationToRequest(operation)
+            const authConverter = new AuthConverter(
+              request,
+              openApi as OpenAPIV3.Document,
+            )
+            authConverter.attachAuthFromOperationToRequest(
+              openApi as OpenAPIV3.OperationObject,
+            )
 
             const bodyConverter = new BodyConverter(request)
-            bodyConverter.attachBodyFromOperationToRequest(operation)
+            bodyConverter.attachBodyFromOperationToRequest(
+              openApi as OpenAPIV3.OperationObject,
+            )
           },
         )
       })

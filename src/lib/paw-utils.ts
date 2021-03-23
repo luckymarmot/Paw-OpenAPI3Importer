@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/extensions
-import Paw, { Request } from '../types/paw'
+import Paw from 'types/paw'
 // eslint-disable-next-line import/no-cycle
 import EnvironmentManager from './environment-manager'
 import Console from './console'
@@ -9,7 +9,7 @@ const makeDv = (
   properties?: { [key: string]: any },
 ): DynamicValue => new DynamicValue(type, properties)
 
-const makeDs = (...components: Paw.DynamicStringComponent[]): DynamicString =>
+const makeDs = (...components: DynamicStringComponent[]): DynamicString =>
   new DynamicString(...components)
 
 const makeEnvDv = (variableId: string): DynamicValue =>
@@ -31,11 +31,11 @@ const convertEnvString = (
   s: string,
   envManager: EnvironmentManager,
   defaultValue: string = '',
-  request: Request,
+  request: Paw.Request,
 ): string | DynamicString => {
   const re = /\{([^}]+)\}/g
   let match
-  const components: Paw.DynamicStringComponent[] = []
+  const components: DynamicStringComponent[] = []
   let idx = 0
 
   // eslint-disable-next-line no-cond-assign

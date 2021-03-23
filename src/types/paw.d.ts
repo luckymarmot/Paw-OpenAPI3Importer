@@ -253,7 +253,118 @@ declare namespace Paw {
     mode: KeyValueMode
   }
 
-  class Request extends RequestTreeItem {}
+  class Request extends RequestTreeItem {
+    readonly id: string
+    readonly parent: RequestTreeItem | null
+    readonly urlBase: string
+    readonly urlQuery: string
+    readonly urlParametersNames: string[]
+    readonly headersNames: string[]
+    readonly urlEncodedBodyKeys: string[] | null
+    readonly variables: RequestVariable[]
+    name: string
+    description: string
+    order: number
+    url: string | DynamicString
+    timeout: number
+    followRedirects: boolean
+    redirectAuthorization: boolean
+    redirectMethod: boolean
+    sendCookies: boolean
+    storeCookies: boolean
+    clientCertificate: DynamicString | null
+    urlParameters: { [key: string]: string | DynamicString }
+    method: string | DynamicString
+    headers: { [key: string]: string | DynamicString }
+    body: string | DynamicString | null
+    urlEncodedBody: { [key: string]: string | DynamicString } | null
+    multipartBody: { [key: string]: string | DynamicString } | null
+    jsonBody: object | null
+    httpBasicAuth: BasicAuth | null
+    oauth1: OAuth1 | null
+    oauth2: OAuth2 | null
+
+    getUrl(isDynamic?: boolean): string | DynamicString
+    getUrlBase(isDynamic?: boolean): string | DynamicString
+
+    getUrlParameters(
+      isDynamic?: boolean,
+    ): { [key: string]: string | DynamicString }
+
+    getUrlParametersArray(): KeyValue[]
+    getUrlParametersNames(): string[]
+    getUrlParameterByName(
+      name: string,
+      isDynamic?: boolean,
+    ): string | DynamicString | null
+
+    setUrlParameter(
+      name: string | DynamicString,
+      value: string | DynamicString,
+    ): KeyValue
+
+    setUrlParameterByName(
+      name: string | DynamicString,
+      value: string | DynamicString,
+    ): KeyValue // alias of setUrlParameter()
+
+    addUrlParameter(
+      name: string | DynamicString,
+      value: string | DynamicString,
+    ): KeyValue
+
+    addRawUrlQuery(query: string | DynamicString): KeyValue
+    getMethod(isDynamic?: boolean): string | DynamicString
+    getHeaders(isDynamic?: boolean): { [key: string]: string | DynamicString }
+    getHeadersNames(): string[]
+    getHeadersArray(): KeyValue[]
+
+    getHeaderByName(
+      name: string,
+      isDynamic?: boolean,
+    ): string | DynamicString | null
+
+    setHeader(
+      name: string | DynamicString,
+      value: string | DynamicString,
+    ): KeyValue
+
+    addHeader(
+      name: string | DynamicString,
+      value: string | DynamicString,
+    ): KeyValue
+
+    getBody(isDynamic?: boolean): string | DynamicString | null
+    getUrlEncodedBodyKeys(): string[] | null
+    getUrlEncodedBodyKey(key: string): string | null
+
+    getUrlEncodedBody(
+      isDynamic?: boolean,
+    ): { [key: string]: string | DynamicString } | null
+
+    getMultipartBody(
+      isDynamic?: boolean,
+    ): { [key: string]: string | DynamicString } | null
+
+    getJsonBodyKeyPath(keyPath: string): object | null
+    getHttpBasicAuth(isDynamic?: boolean): BasicAuth | null
+    getOAuth1(isDynamic?: boolean): OAuth1 | null
+    getOAuth2(isDynamic?: boolean): OAuth2 | null
+    getVariablesNames(): string[]
+    getVariableByName(name: string): RequestVariable | null
+    getVariableById(id: string): RequestVariable | null
+
+    addVariable(
+      name: string,
+      value: string | DynamicString,
+      description: string,
+    ): RequestVariable
+
+    getLastExchange(): HTTPExchange | null
+    getAllExchanges(): HTTPExchange[]
+    clone(newName: string): Request
+    deleteRequest(): boolean
+  }
 
   class RequestGroup extends RequestTreeItem {
     readonly id: string

@@ -2,8 +2,7 @@
 import OpenAPI, { MapKeyedWithString } from 'types/openapi'
 import EnvironmentManager from './environment-manager'
 import { convertEnvString } from './paw-utils'
-// import Console from './console'
-import { Request } from 'types/paw'
+import Paw from 'types/paw'
 
 export default class URL {
   hostname: string
@@ -21,7 +20,7 @@ export default class URL {
     openApi: OpenAPI.OpenAPIObject,
     pathName: string,
     envManager: EnvironmentManager,
-    request: Request,
+    request: Paw.Request,
   ) {
     let server: OpenAPI.ServerObject = { url: '' }
     let match: RegExpMatchArray | null = []

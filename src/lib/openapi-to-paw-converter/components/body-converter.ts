@@ -1,8 +1,14 @@
-// eslint-disable-next-line import/extensions
-import Paw from '../../../types/paw'
-// eslint-disable-next-line import/extensions
-import OpenAPI, { MapKeyedWithString } from '../../../types/openapi'
-import Console from '../../console'
+import Paw from 'types/paw'
+
+/**
+ * @deprecated
+ * OpenAPI - manual type declaraion of openapi typinggs
+ * OpenAPIV3 - utilize openapi types instead
+ */
+import { MapKeyedWithString } from 'types/openapi'
+import { OpenAPIV3 } from 'openapi-types'
+
+import Console from 'console'
 
 export default class BodyConverter {
   private request: Paw.Request
@@ -11,28 +17,30 @@ export default class BodyConverter {
     this.request = request
   }
 
-  attachBodyFromOperationToRequest(operation: OpenAPI.OperationObject) {
-    if ((operation?.requestBody as OpenAPI.RequestBodyObject)?.content) {
+  attachBodyFromOperationToRequest(operation: OpenAPIV3.OperationObject) {
+    if ((operation?.requestBody as OpenAPIV3.RequestBodyObject)?.content) {
       Object.entries(
-        (operation.requestBody as OpenAPI.RequestBodyObject).content,
+        (operation.requestBody as OpenAPIV3.RequestBodyObject).content,
       )
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         .forEach(
-          ([contentType, mediaType]: [string, OpenAPI.MediaTypeObject]) => {
+          ([contentType, mediaType]: [string, OpenAPIV3.MediaTypeObject]) => {
             let body = '' as any
 
-            if ((mediaType.example as OpenAPI.ExampleObject)?.value) {
-              body = (mediaType.example as OpenAPI.ExampleObject).value
+            if ((mediaType.example as OpenAPIV3.ExampleObject)?.value) {
+              body = (mediaType.example as OpenAPIV3.ExampleObject).value
             } else if (
               mediaType.examples &&
               Object.keys(
-                mediaType.examples as MapKeyedWithString<OpenAPI.ExampleObject>,
+                mediaType.examples as MapKeyedWithString<OpenAPIV3.ExampleObject>,
               ).length > 0
             ) {
               const { examples } = mediaType
               const firstExampleKey = Object.keys(examples)[0]
-              if ((examples[firstExampleKey] as OpenAPI.ExampleObject).value) {
-                body = (examples[firstExampleKey] as OpenAPI.ExampleObject)
+              if (
+                (examples[firstExampleKey] as OpenAPIV3.ExampleObject).value
+              ) {
+                body = (examples[firstExampleKey] as OpenAPIV3.ExampleObject)
                   .value
               }
             }

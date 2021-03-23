@@ -1,8 +1,13 @@
 import Paw from 'types/paw'
+
+/**
+ * @deprecated
+ * OpenAPI - manual type declaraion of openapi typinggs
+ * OpenAPIV3 - utilize openapi types instead
+ */
 import OpenAPI, { MapKeyedWithString, NonRequiredLabel } from 'types/openapi'
+import { OpenAPIV3 } from 'openapi-types'
 import EnvironmentManager from 'lib/environment-manager'
-// import { convertEnvString } from 'lib/paw-utils'
-// import Console from '../../console'
 
 export default class ParametersConverter {
   private request: Paw.Request
@@ -14,10 +19,10 @@ export default class ParametersConverter {
     this.envManager = envManager
   }
 
-  attachParametersFromOperationToRequest(operation: OpenAPI.OperationObject) {
+  attachParametersFromOperationToRequest(operation: OpenAPIV3.OperationObject) {
     if (operation && operation.parameters) {
       operation.parameters.forEach((param) => {
-        switch ((param as OpenAPI.ParameterObject).in) {
+        switch ((param as OpenAPIV3.ParameterObject).in) {
           case 'query':
             this.parseQueryParam(param as OpenAPI.ParameterObject)
             break
@@ -35,7 +40,7 @@ export default class ParametersConverter {
   }
 
   attachParametersFromServerVariables(
-    serverVariables: MapKeyedWithString<OpenAPI.ServerVariableObject>,
+    serverVariables: MapKeyedWithString<OpenAPIV3.ServerVariableObject>,
   ) {
     Object.entries(serverVariables).forEach(([variableName, variable]) => {
       const variableValue = variable.default ?? variableName
@@ -66,8 +71,8 @@ export default class ParametersConverter {
     )
 
     const { schema } = param
-    if (schema && (schema as OpenAPI.SchemaObject).type) {
-      variable.schema = this.convertSchema(schema as OpenAPI.SchemaObject)
+    if (schema && (schema as OpenAPIV3.SchemaObject).type) {
+      variable.schema = this.convertSchema(schema as OpenAPIV3.SchemaObject)
     }
 
     if (!this.request.getUrlParameterByName(param.name)) {
@@ -85,7 +90,7 @@ export default class ParametersConverter {
       param.name,
       defaultValue ?? '',
       param.description ??
-        (param.schema as OpenAPI.SchemaObject)?.description ??
+        (param.schema as OpenAPIV3.SchemaObject)?.description ??
         '',
     )
 
@@ -93,17 +98,17 @@ export default class ParametersConverter {
 
     if (
       example &&
-      (example as OpenAPI.ExampleObject).summary &&
-      (example as OpenAPI.ExampleObject).summary === NonRequiredLabel &&
-      (example as OpenAPI.ExampleObject).value === true
+      (example as OpenAPIV3.ExampleObject).summary &&
+      (example as OpenAPIV3.ExampleObject).summary === NonRequiredLabel &&
+      (example as OpenAPIV3.ExampleObject).value === true
     ) {
       variable.required = false
     }
 
     // // convert schema
     const { schema } = param
-    if (schema && (schema as OpenAPI.SchemaObject).type) {
-      variable.schema = this.convertSchema(schema as OpenAPI.SchemaObject)
+    if (schema && (schema as OpenAPIV3.SchemaObject).type) {
+      variable.schema = this.convertSchema(schema as OpenAPIV3.SchemaObject)
     }
   }
 
@@ -124,8 +129,8 @@ export default class ParametersConverter {
     )
 
     const { schema } = param
-    if (schema && (schema as OpenAPI.SchemaObject).type) {
-      variable.schema = this.convertSchema(schema as OpenAPI.SchemaObject)
+    if (schema && (schema as OpenAPIV3.SchemaObject).type) {
+      variable.schema = this.convertSchema(schema as OpenAPIV3.SchemaObject)
     }
 
     if (!this.request.getHeaderByName(param.name)) {
@@ -153,13 +158,13 @@ export default class ParametersConverter {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  private convertSchema(schema: OpenAPI.SchemaObject): string {
+  private convertSchema(schema: OpenAPIV3.SchemaObject): string {
     // Schema
     // https://swagger.io/specification/#schema-object
     // The following properties are taken directly from the JSON Schema definition
     // and follow the same specifications: [...]
     // Keep only the properties that are compatible with the JSON Schema spec.
-    const pawSchema: Partial<OpenAPI.SchemaObject> = {
+    const pawSchema: Partial<OpenAPIV3.SchemaObject> = {
       ...(schema.title ? { title: schema.title } : {}),
       ...(schema.multipleOf ? { multipleOf: schema.multipleOf } : {}),
       ...(schema.maximum ? { maximum: schema.maximum } : {}),

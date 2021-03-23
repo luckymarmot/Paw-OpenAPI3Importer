@@ -1,21 +1,26 @@
-// eslint-disable-next-line import/extensions
-import Paw from '../../../types/paw'
-// eslint-disable-next-line import/extensions
-import OpenAPI, { BasicCredentialsLabel } from '../../../types/openapi'
-// import ParametersConverter from './parameters-converter';
-import Console from '../../console'
+import Paw from 'types/paw'
+
+/**
+ * @deprecated
+ * OpenAPI - manual type declaraion of openapi typinggs
+ * OpenAPIV3 - utilize openapi types instead
+ */
+import OpenAPI, { BasicCredentialsLabel } from 'types/openapi'
+import { OpenAPIV3 } from 'openapi-types'
+
+import Console from 'lib/console'
 
 export default class AuthConverter {
   private request: Paw.Request
 
-  private openApi: OpenAPI.OpenAPIObject
+  private openApi: OpenAPIV3.Document
 
-  constructor(request: Paw.Request, openApi: OpenAPI.OpenAPIObject) {
+  constructor(request: Paw.Request, openApi: OpenAPIV3.Document) {
     this.request = request
     this.openApi = openApi
   }
 
-  attachAuthFromOperationToRequest(operation: OpenAPI.OperationObject): void {
+  attachAuthFromOperationToRequest(operation: OpenAPIV3.OperationObject): void {
     if (operation.security && operation.security.length > 0) {
       operation.security.forEach((securityRequirement) => {
         if (securityRequirement) {
@@ -60,20 +65,20 @@ export default class AuthConverter {
       let found: boolean = false
       Object.keys(this.openApi.components.examples).forEach((key) => {
         const { examples = {} } = this.openApi
-          .components as OpenAPI.ComponentsObject
+          .components as OpenAPIV3.ComponentsObject
         if (
           !found &&
           key === authKey &&
           examples &&
           (examples[authKey] as OpenAPI.ExampleObject)?.summary ===
             BasicCredentialsLabel &&
-          (examples[authKey] as OpenAPI.ExampleObject).value?.username &&
-          (examples[authKey] as OpenAPI.ExampleObject).value?.password
+          (examples[authKey] as OpenAPIV3.ExampleObject).value?.username &&
+          (examples[authKey] as OpenAPIV3.ExampleObject).value?.password
         ) {
           found = true
-          username = (examples[authKey] as OpenAPI.ExampleObject).value
+          username = (examples[authKey] as OpenAPIV3.ExampleObject).value
             ?.username
-          password = (examples[authKey] as OpenAPI.ExampleObject).value
+          password = (examples[authKey] as OpenAPIV3.ExampleObject).value
             ?.password
         }
       })
