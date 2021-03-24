@@ -1,16 +1,23 @@
 import path from 'path'
-import PACKAGE from './package.json'
+import PKG from './package.json'
 
-const name = PACKAGE.config.extension_name
-const identifier = PACKAGE.config.extension_identifier
+const { name, identifier } = PKG.config
 
-const config = {
+const webpackConfig = {
   mode: 'production',
   target: 'web',
+  devtool: 'none',
   entry: './src/index.ts',
+  stats: {
+    outputPath: true,
+    maxModules: 1,
+  },
   output: {
-    path: path.join(__dirname, `./dist/${identifier}`),
+    path: path.join(__dirname, `dist/${identifier}`),
     filename: `${name}.js`,
+  },
+  optimization: {
+    minimize: false,
   },
   module: {
     rules: [
@@ -21,20 +28,14 @@ const config = {
       },
     ],
   },
-
   resolve: {
+    extensions: ['.ts', '.js', '.json', '.d.ts'],
     alias: {
       types: path.resolve(__dirname, 'src/types'),
       lib: path.resolve(__dirname, 'src/lib'),
       utils: path.resolve(__dirname, 'src/utils'),
     },
-    extensions: ['.ts', '.js', '.d.ts'],
-  },
-
-  devtool: 'none',
-  optimization: {
-    minimize: false,
   },
 }
 
-export default config
+export default webpackConfig
