@@ -1,33 +1,35 @@
-import Yaml from 'yaml';
+import Yaml from 'yaml'
 // eslint-disable-next-line import/extensions
-import Paw from './types-paw-api/paw';
+import Paw from 'types/paw'
 // eslint-disable-next-line import/extensions
-import OpenAPI from './types-paw-api/openapi';
-import OpenAPIToPawConverter from './lib/openapi-to-paw-converter/openapi-to-paw-converter';
+import OpenAPI from 'types/openapi'
+import OpenAPIToPawConverter from './lib/openapi-to-paw-converter/openapi-to-paw-converter'
 
 class OpenAPIImporter implements Paw.Importer {
-  static identifier = 'com.luckymarmot.PawExtensions.OpenAPIImporter';
+  static identifier = 'com.luckymarmot.PawExtensions.OpenAPIImporter'
 
-  static title = 'OpenAPI 3.0';
+  static title = 'OpenAPI 3.0'
 
-  converter: OpenAPIToPawConverter;
+  converter: OpenAPIToPawConverter
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public canImport(context: Paw.Context, items: Paw.ExtensionItem[]): number {
-    return items.reduce((acc, item) => {
+  public canImport(_context: Paw.Context, items: Paw.ExtensionItem[]): number {
+    return items.reduce((_acc, item) => {
       try {
-        const openApi = this.parseExtensionItem(item);
+        const openApi = this.parseExtensionItem(item)
 
         return (
-          openApi.openapi.substr(0, 3) === '3.0' // allowed versions 3.0.*
-          && typeof openApi.info === 'object'
-          && typeof openApi.paths === 'object'
-          && Object.keys(openApi.paths).length > 0
-        );
+          openApi.openapi.substr(0, 3) === '3.0' && // allowed versions 3.0.*
+          typeof openApi.info === 'object' &&
+          typeof openApi.paths === 'object' &&
+          Object.keys(openApi.paths).length > 0
+        )
       } catch (error) {
-        return 0;
+        return 0
       }
-    }, true) ? 1 : 0;
+    }, true)
+      ? 1
+      : 0
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -35,33 +37,34 @@ class OpenAPIImporter implements Paw.Importer {
     context: Paw.Context,
     items: Paw.ExtensionItem[],
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    options: Paw.ExtensionOption,
+    _options: Paw.ExtensionOption,
   ): boolean {
-    this.converter = new OpenAPIToPawConverter(context);
+    this.converter = new OpenAPIToPawConverter(context)
 
     items.forEach((item) => {
-      let openApi: OpenAPI.OpenAPIObject;
+      let openApi: OpenAPI.OpenAPIObject
 
       try {
-        openApi = this.parseExtensionItem(item);
+        openApi = this.parseExtensionItem(item)
       } catch (error) {
-        throw new Error('Invalid OpenAPI file');
+        throw new Error('Invalid OpenAPI file')
       }
 
-      const fileName = openApi.info.title ?? item.file?.name ?? 'OpenAPI 3.0 import';
-      this.converter.convert(openApi, fileName);
-    });
+      const fileName =
+        openApi.info.title ?? item.file?.name ?? 'OpenAPI 3.0 import'
+      this.converter.convert(openApi, fileName)
+    })
 
-    return true;
+    return true
   }
 
   // eslint-disable-next-line class-methods-use-this
   private parseExtensionItem(item: Paw.ExtensionItem): OpenAPI.OpenAPIObject {
     if (item.mimeType === 'application/json') {
-      return JSON.parse(item.content) as OpenAPI.OpenAPIObject;
+      return JSON.parse(item.content) as OpenAPI.OpenAPIObject
     }
-    return Yaml.parse(item.content) as OpenAPI.OpenAPIObject;
+    return Yaml.parse(item.content) as OpenAPI.OpenAPIObject
   }
 }
 
-registerImporter(OpenAPIImporter);
+registerImporter(OpenAPIImporter)
