@@ -11,7 +11,7 @@
     "@babel/plugin-proposal-class-properties": "^7.7.0",
     "@babel/plugin-proposal-object-rest-spread": "^7.6.2",
     "@babel/plugin-transform-runtime": "^7.6.2",
-    "@babel/preset-env": "^7.7.0",
+    "@babel/preset-env": "^7.13.12",
     "@babel/preset-typescript": "^7.7.0",
     "@babel/register": "^7.7.0",
     "@types/jest": "^24.0.22",
@@ -21,6 +21,7 @@
     "@typescript-eslint/parser": "^3.6.1",
     "babel-jest": "^26.6.3",
     "babel-loader": "^8.0.6",
+    "core-js": "3",
     "eslint": "^6.6.0",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-config-airbnb-base": "^14.0.0",
@@ -57,6 +58,7 @@
   },
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.0.2",
+    "util": "^0.12.3",
     "yaml": "^1.10.0"
   }
 }

@@ -6,7 +6,7 @@ const identifier = PACKAGE.config.extension_identifier
 
 const config = {
   mode: 'production',
-  target: 'node-webkit',
+  target: 'web',
   entry: './src/index.ts',
   output: {
     path: path.join(__dirname, `./dist/${identifier}`),
@@ -31,7 +31,7 @@ const config = {
     extensions: ['.ts', '.js', '.d.ts'],
   },
 
-  devtool: 'inline-source-map',
+  devtool: 'none',
   optimization: {
     minimize: false,
   },
