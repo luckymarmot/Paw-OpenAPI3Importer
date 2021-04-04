@@ -60,7 +60,8 @@
     "outputDir": "\"/Library/Containers/com.luckymarmot.Paw/Data/Library/Application Support/com.luckymarmot.Paw/Extensions\""
   },
   "scripts": {
-    "dev:mac": "bash -c \"./node_modules/.bin/webpack --watch -o $HOME/$npm_package_config_outputDir/$npm_package_config_identifier\"",
+    "start": "yarn dev:mac",
+    "dev:mac": "bash -c \"./node_modules/.bin/webpack --node-env development --watch -o $HOME/$npm_package_config_outputDir/$npm_package_config_identifier\"",
     "dev:web": "echo \"\n\tWork in progress...\n\"",
     "build:mac": "webpack --config ./webpack.config.babel.js",
     "build:web": "yarn ",

@@ -7,6 +7,8 @@ declare global {
     info: (..._args: unknown[]) => void
   }
 
+  type MapKeyedWithString<T> = { [key: string]: T }
+
   type DynamicStringComponent = string | DynamicValue
   class DynamicString {
     length: number
@@ -464,7 +466,7 @@ declare namespace Paw {
       context: Context,
       items: ExtensionItem[],
       options: ExtensionOption,
-    ): boolean
+    ): boolean | Promise<boolean>
   }
 
   class Generator {

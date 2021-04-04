@@ -5,7 +5,7 @@
     "sourceMap": true,
     "noImplicitAny": true,
     "module": "commonjs",
-    "target": "es2019",
+    "target": "es5",
     "esModuleInterop": true,
     "strictNullChecks": true,
     "noEmit": true,

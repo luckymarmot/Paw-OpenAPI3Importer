@@ -22,7 +22,7 @@ function parseObjects(data: unknown): string {
   }
 }
 
-/**
+/**e
  * @function pseudoLog
  * @summary
  * abstracts the built-in console.log method which,
