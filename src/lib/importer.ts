@@ -1,32 +1,9 @@
-import SwaggerParser from '@apidevtools/swagger-parser'
 import Yaml from 'yaml'
 import { OpenAPIV3 } from 'openapi-types'
 import Paw from 'types/paw'
-import { logger } from 'utils'
 import PKG from '../../package.json'
 
 const { identifier, title, inputs, fileExtensions } = PKG.config
-
-const asyncValidator = (content: OpenAPIV3.Document) =>
-  new Promise((resolve, reject) => {
-    const swagger = new SwaggerParser()
-    // SwaggerParser.validate(content, function callback(error, context) {
-    //   logger.log('error', error)
-    //   logger.log('success', context)
-    //   if (!error) return resolve(context)
-    //   return reject(error as Error)
-    // })
-    swagger
-      .validate(content)
-      .then((data) => {
-        logger.log('success', data)
-        resolve(data)
-      })
-      .catch((error) => {
-        logger.log('error', error)
-        reject(error)
-      })
-  })
 
 export default class OpenAPIv3Importer implements Paw.Importer {
   public static title = title
@@ -63,19 +40,8 @@ export default class OpenAPIv3Importer implements Paw.Importer {
     context: Paw.Context,
     items: Paw.ExtensionItem[],
     options: Paw.ExtensionOption,
-  ): Promise<boolean> {
-    // this section is a test to see whether Promises work in webkit runtime
-    // it seems like it's not because `setImmediate` is used by the library
-    // while the api is not available in webkit runtime !@#$%
-    return asyncValidator(this.parseContent(items[0]))
-      .then((data) => {
-        logger.log('success', data)
-        return true
-      })
-      .catch((err) => {
-        logger.log('error', err)
-        return false
-      })
+  ): boolean {
+    return true
   }
 
   /**

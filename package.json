@@ -6,6 +6,14 @@
   "main": "src/index.ts",
   "license": "MIT",
   "repository": "git@github.com:luckymarmot/Paw-OpenAPI3Importer.git",
+  "scripts": {
+    "start": "yarn dev:mac",
+    "dev:mac": "bash -c \"./node_modules/.bin/webpack --node-env development --watch -o $HOME/$npm_package_config_outputDir/$npm_package_config_identifier\"",
+    "dev:web": "echo \"\n\tWork in progress...\n\"",
+    "build:mac": "webpack --config ./webpack.config.babel.js",
+    "build:web": "yarn ",
+    "test": "jest"
+  },
   "devDependencies": {
     "@babel/cli": "^7.7.0",
     "@babel/core": "^7.7.0",
@@ -43,9 +51,6 @@
     "webpack-cli": "^4.6.0"
   },
   "config": {
-    "extension_name": "OpenAPIv3Importer",
-    "extension_identifier": "com.luckymarmot.PawExtensions.OpenAPIv3Importer",
-    "extensions_dir": "/Library/Containers/com.luckymarmot.Paw/Data/Library/Application Support/com.luckymarmot.Paw/Extensions",
     "name": "OpenAPIv3Importer",
     "title": "OpenAPI v3 Importer",
     "description": "An OpenAPI importer extension for Paw client.",
@@ -59,20 +64,7 @@
     "help": "https://github.com/luckymarmot/Paw-OpenAPI3Importer/wiki",
     "outputDir": "\"/Library/Containers/com.luckymarmot.Paw/Data/Library/Application Support/com.luckymarmot.Paw/Extensions\""
   },
-  "scripts": {
-    "start": "yarn dev:mac",
-    "dev:mac": "bash -c \"./node_modules/.bin/webpack --node-env development --watch -o $HOME/$npm_package_config_outputDir/$npm_package_config_identifier\"",
-    "dev:web": "echo \"\n\tWork in progress...\n\"",
-    "build:mac": "webpack --config ./webpack.config.babel.js",
-    "build:web": "yarn ",
-    "paw": "webpack && cp -r \"./dist/$npm_package_config_extension_identifier\" \"${HOME}$npm_package_config_extensions_dir\"",
-    "pawSilently": "webpack && mkdir -p \"${HOME}$npm_package_config_extensions_dir\" && cp -r \"./dist/$npm_package_config_extension_identifier\" \"${HOME}$npm_package_config_extensions_dir\"",
-    "archive": "webpack && cd ./dist && zip -r9X \"./$npm_package_config_extension_name\"\".zip\" \"./$npm_package_config_extension_identifier\"",
-    "tsc": "tsc --noEmit",
-    "test": "jest"
-  },
   "dependencies": {
-    "@apidevtools/swagger-parser": "^10.0.2",
     "util": "^0.12.3",
     "yaml": "^1.10.0"
   }
