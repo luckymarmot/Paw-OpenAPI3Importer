@@ -4,4 +4,9 @@ import { OpenAPIv3Importer } from './lib'
 import Promise from 'promise'
 global.Promise = Promise as any
 
+// Fix missing location since we're not in a web browser
+global.location = {
+    href: '',
+} as any
+
 registerImporter(OpenAPIv3Importer)
