@@ -2,8 +2,26 @@ import Yaml from 'yaml'
 import { OpenAPIV3 } from 'openapi-types'
 import Paw from 'types/paw'
 import PKG from '../../package.json'
+import { logger } from 'utils'
+import SwaggerParser from '@apidevtools/swagger-parser'
 
 const { identifier, title, inputs, fileExtensions } = PKG.config
+
+function asyncValidator(content: OpenAPIV3.Document) {
+  return new Promise((resolve, reject) => {
+    const swagger = new SwaggerParser()
+    swagger
+      .validate(content)
+      .then((data) => {
+        logger.log('success', data)
+        resolve(data)
+      })
+      .catch((error) => {
+        logger.log('error', error)
+        reject(error)
+      })
+  })
+}
 
 export default class OpenAPIv3Importer implements Paw.Importer {
   public static title = title
@@ -23,7 +41,18 @@ export default class OpenAPIv3Importer implements Paw.Importer {
    * @returns {number}
    */
   public canImport(context: Paw.Context, items: Paw.ExtensionItem[]): number {
-    return 1
+    return items.reduce((acc, item: Paw.ExtensionItem) => {
+      const doc = this.parseContent(item) as OpenAPIV3.Document
+      if (!doc) return 0
+      return (
+        doc.openapi.substr(0, 3) === '3.0' && // allowed versions 3.0.*
+        typeof doc.info === 'object' &&
+        typeof doc.paths === 'object' &&
+        Object.keys(doc.paths).length > 0
+      )
+    }, true)
+      ? 1
+      : 0
   }
 
   /**
@@ -40,8 +69,16 @@ export default class OpenAPIv3Importer implements Paw.Importer {
     context: Paw.Context,
     items: Paw.ExtensionItem[],
     options: Paw.ExtensionOption,
-  ): boolean {
-    return true
+  ): Promise<boolean> {
+    return asyncValidator(this.parseContent(items[0].content))
+      .then((data) => {
+        logger.log('import success', data)
+        return true
+      })
+      .catch((error) => {
+        logger.log('import failed', error)
+        return false
+      })
   }
 
   /**
@@ -57,11 +94,16 @@ export default class OpenAPIv3Importer implements Paw.Importer {
   private parseContent({
     mimeType,
     content,
-  }: Paw.ExtensionItem): OpenAPIV3.Document {
-    const context =
-      mimeType === 'application/json'
-        ? JSON.parse(content)
-        : Yaml.parse(content)
-    return context
+  }: Paw.ExtensionItem): OpenAPIV3.Document | null {
+    try {
+      const context =
+        mimeType === 'application/json'
+          ? JSON.parse(content)
+          : Yaml.parse(content)
+      return context
+    } catch (error) {
+      logger.log(error)
+      return null
+    }
   }
 }
