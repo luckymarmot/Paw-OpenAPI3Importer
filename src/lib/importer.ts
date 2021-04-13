@@ -70,14 +70,19 @@ export default class OpenAPIv3Importer implements Paw.Importer {
     items: Paw.ExtensionItem[],
     options: Paw.ExtensionOption,
   ): Promise<boolean> {
-    return asyncValidator(this.parseContent(items[0].content))
+    const object = this.parseContent(items[0])
+    return asyncValidator(object)
       .then((data) => {
         logger.log('import success', data)
         return true
       })
       .catch((error) => {
         logger.log('import failed', error)
-        return false
+
+        // note: despite the confusing typings returning Promise(false)
+        // will be considered a success
+        // instead, throw an error (equivalent to `return Promise(new Error())`)
+        throw error
       })
   }
 
@@ -94,7 +99,7 @@ export default class OpenAPIv3Importer implements Paw.Importer {
   private parseContent({
     mimeType,
     content,
-  }: Paw.ExtensionItem): OpenAPIV3.Document | null {
+  }: Paw.ExtensionItem): OpenAPIV3.Document {
     try {
       const context =
         mimeType === 'application/json'
@@ -103,7 +108,7 @@ export default class OpenAPIv3Importer implements Paw.Importer {
       return context
     } catch (error) {
       logger.log(error)
-      return null
+      throw new Error(`Failed to parse OpenAPI file: ${error}`)
     }
   }
 }

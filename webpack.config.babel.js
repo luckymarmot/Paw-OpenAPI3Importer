@@ -4,12 +4,9 @@ import PKG from './package.json'
 const { name, identifier } = PKG.config
 
 const webpackConfig = {
-  target: 'web',
+  target: 'webworker',
   devtool: 'none',
   entry: './src/index.ts',
-  node: {
-    setImmediate: false,
-  },
   stats: {
     outputPath: true,
     maxModules: 1,
