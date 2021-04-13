@@ -8,19 +8,8 @@ import SwaggerParser from '@apidevtools/swagger-parser'
 const { identifier, title, inputs, fileExtensions } = PKG.config
 
 function asyncValidator(content: OpenAPIV3.Document) {
-  return new Promise((resolve, reject) => {
-    const swagger = new SwaggerParser()
-    swagger
-      .validate(content)
-      .then((data) => {
-        logger.log('success', data)
-        resolve(data)
-      })
-      .catch((error) => {
-        logger.log('error', error)
-        reject(error)
-      })
-  })
+  const swagger = new SwaggerParser()
+  return swagger.validate(content)
 }
 
 export default class OpenAPIv3Importer implements Paw.Importer {
@@ -77,7 +66,7 @@ export default class OpenAPIv3Importer implements Paw.Importer {
         return true
       })
       .catch((error) => {
-        logger.log('import failed', error)
+        logger.log('import failed', error.toString())
 
         // note: despite the confusing typings returning Promise(false)
         // will be considered a success
