@@ -7,22 +7,6 @@ import SwaggerParser from '@apidevtools/swagger-parser'
 
 const { identifier, title, inputs, fileExtensions } = PKG.config
 
-function asyncValidator(content: OpenAPIV3.Document) {
-  return new Promise((resolve, reject) => {
-    const swagger = new SwaggerParser()
-    swagger
-      .validate(content)
-      .then((data) => {
-        logger.log('success', data)
-        resolve(data)
-      })
-      .catch((error) => {
-        logger.log('error', error)
-        reject(error)
-      })
-  })
-}
-
 export default class OpenAPIv3Importer implements Paw.Importer {
   public static title = title
   public static inputs = inputs
@@ -70,14 +54,31 @@ export default class OpenAPIv3Importer implements Paw.Importer {
     items: Paw.ExtensionItem[],
     options: Paw.ExtensionOption,
   ): Promise<boolean> {
-    return asyncValidator(this.parseContent(items[0].content))
+    // parse Yaml or JSON
+    const object = this.parseContent(items[0])
+
+    // init SwaggerParser
+    const swagger = new SwaggerParser()
+
+    // validate and import
+    return swagger
+      .validate(object)
       .then((data) => {
-        logger.log('import success', data)
+        logger.log('validation success', typeof data, data)
+
+        // @TODO we can import here
+        // just a test request below
+        context.createRequest('Test OpenAPI Request', 'GET', 'https://httpbin.org/get', 'This is an endpoint imported from OpenAPI')
+
         return true
       })
       .catch((error) => {
-        logger.log('import failed', error)
-        return false
+        logger.log('validation failed', error.toString())
+
+        // note: despite the confusing typings returning Promise(false)
+        // will be considered a success
+        // instead, throw an error (equivalent to `return Promise(new Error())`)
+        throw error
       })
   }
 
@@ -94,7 +95,7 @@ export default class OpenAPIv3Importer implements Paw.Importer {
   private parseContent({
     mimeType,
     content,
-  }: Paw.ExtensionItem): OpenAPIV3.Document | null {
+  }: Paw.ExtensionItem): OpenAPIV3.Document {
     try {
       const context =
         mimeType === 'application/json'
@@ -103,7 +104,7 @@ export default class OpenAPIv3Importer implements Paw.Importer {
       return context
     } catch (error) {
       logger.log(error)
-      return null
+      throw new Error(`Failed to parse OpenAPI file: ${error}`)
     }
   }
 }

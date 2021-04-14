@@ -1,13 +1,11 @@
 {
   "presets": [
     [
-      "@babel/preset-env",
+      "@babel/env",
       {
-        "useBuiltIns": "usage",
         "targets": {
-          "esmodules": true
-        },
-        "corejs": 3
+          "safari": "6"
+        }
       }
     ],
     "@babel/typescript"
