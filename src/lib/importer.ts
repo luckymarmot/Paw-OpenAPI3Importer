@@ -7,11 +7,6 @@ import SwaggerParser from '@apidevtools/swagger-parser'
 
 const { identifier, title, inputs, fileExtensions } = PKG.config
 
-function asyncValidator(content: OpenAPIV3.Document) {
-  const swagger = new SwaggerParser()
-  return swagger.validate(content)
-}
-
 export default class OpenAPIv3Importer implements Paw.Importer {
   public static title = title
   public static inputs = inputs
@@ -59,14 +54,26 @@ export default class OpenAPIv3Importer implements Paw.Importer {
     items: Paw.ExtensionItem[],
     options: Paw.ExtensionOption,
   ): Promise<boolean> {
+    // parse Yaml or JSON
     const object = this.parseContent(items[0])
-    return asyncValidator(object)
+
+    // init SwaggerParser
+    const swagger = new SwaggerParser()
+
+    // validate and import
+    return swagger
+      .validate(object)
       .then((data) => {
-        logger.log('import success', data)
+        logger.log('validation success', typeof data, data)
+
+        // @TODO we can import here
+        // just a test request below
+        context.createRequest('Test OpenAPI Request', 'GET', 'https://httpbin.org/get', 'This is an endpoint imported from OpenAPI')
+
         return true
       })
       .catch((error) => {
-        logger.log('import failed', error.toString())
+        logger.log('validation failed', error.toString())
 
         // note: despite the confusing typings returning Promise(false)
         // will be considered a success
