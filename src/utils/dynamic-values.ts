@@ -101,9 +101,7 @@ export function convertEnvString(
       components.push(envManager.getDynamicValue(match[1]))
     } else {
       let requestVariable = request.getVariableByName(match[1])
-      logger.log('searching for ' + match[1])
       if (requestVariable && requestVariable.id) {
-        logger.log('rwn  ' + requestVariable.name)
         components.push(
           new DynamicValue('com.luckymarmot.RequestVariableDynamicValue', {
             variableUUID: requestVariable.id,

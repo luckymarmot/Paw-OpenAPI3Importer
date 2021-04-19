@@ -43,7 +43,7 @@ export default class OpenAPIv3Importer implements Paw.Importer {
       const doc = this.parseContent(item) as OpenAPIV3.Document
       if (!doc) return 0
       return (
-        doc.openapi.substr(0, 3) === '3.0' && // allowed versions 3.0.*
+        doc.openapi.substr(0, 1) === '3' && // allowed versions 3.x.*
         typeof doc.info === 'object' &&
         typeof doc.paths === 'object' &&
         Object.keys(doc.paths).length > 0
@@ -89,10 +89,7 @@ export default class OpenAPIv3Importer implements Paw.Importer {
     )
 
     return Promise.all(documents)
-      .then((data) => {
-        logger.log('Import Success')
-        return true
-      })
+      .then((data) => data.length > 0)
       .catch((error) => {
         logger.log('validation failed', error.toString())
         throw error
