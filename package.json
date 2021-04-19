@@ -53,7 +53,7 @@
   },
   "config": {
     "name": "OpenAPIv3Importer",
-    "title": "OpenAPI v3 Importer",
+    "title": "OpenAPI v3.x Importer",
     "description": "An OpenAPI importer extension for Paw client.",
     "identifier": "com.luckymarmot.PawExtensions.OpenAPIv3Importer",
     "fileExtensions": [

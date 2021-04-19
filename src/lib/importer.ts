@@ -1,9 +1,10 @@
 import Yaml from 'yaml'
+import SwaggerParser from '@apidevtools/swagger-parser'
 import { OpenAPIV3 } from 'openapi-types'
 import Paw from 'types/paw'
-import PKG from '../../package.json'
 import { logger } from 'utils'
-import SwaggerParser from '@apidevtools/swagger-parser'
+import PawConverter from './converter'
+import PKG from '../../package.json'
 
 const { identifier, title, inputs, fileExtensions } = PKG.config
 
@@ -12,6 +13,19 @@ export default class OpenAPIv3Importer implements Paw.Importer {
   public static inputs = inputs
   public static identifier = identifier
   public static fileExtensions = [...fileExtensions]
+
+  /**
+   * @property {Object<SwaggerParser.Options>} parserOptions
+   *  - swarggger parser options
+   */
+  private parserOptions: SwaggerParser.Options = {
+    resolve: {
+      file: false,
+    },
+    dereference: {
+      circular: false,
+    },
+  }
 
   /**
    * @method canImport
@@ -54,30 +68,33 @@ export default class OpenAPIv3Importer implements Paw.Importer {
     items: Paw.ExtensionItem[],
     options: Paw.ExtensionOption,
   ): Promise<boolean> {
-    // parse Yaml or JSON
-    const object = this.parseContent(items[0])
+    const documents = [...items].map(
+      (item: Paw.ExtensionItem): Promise<OpenAPIV3.Document> => {
+        const apiParser = new SwaggerParser()
+        const apiDocument = this.parseContent(item)
+        const filename = item.file.name.replace(/\.(yml|yaml|json)$/, '')
+        return apiParser
+          .validate(apiDocument, this.parserOptions)
+          .then(() => {
+            const convertDocument = new PawConverter(
+              apiParser,
+              filename,
+              context,
+            )
+            convertDocument.init()
+            return apiParser.api
+          })
+          .catch((error) => error)
+      },
+    )
 
-    // init SwaggerParser
-    const swagger = new SwaggerParser()
-
-    // validate and import
-    return swagger
-      .validate(object)
+    return Promise.all(documents)
       .then((data) => {
-        logger.log('validation success', typeof data, data)
-
-        // @TODO we can import here
-        // just a test request below
-        context.createRequest('Test OpenAPI Request', 'GET', 'https://httpbin.org/get', 'This is an endpoint imported from OpenAPI')
-
+        logger.log('Import Success')
         return true
       })
       .catch((error) => {
         logger.log('validation failed', error.toString())
-
-        // note: despite the confusing typings returning Promise(false)
-        // will be considered a success
-        // instead, throw an error (equivalent to `return Promise(new Error())`)
         throw error
       })
   }
@@ -103,7 +120,6 @@ export default class OpenAPIv3Importer implements Paw.Importer {
           : Yaml.parse(content)
       return context
     } catch (error) {
-      logger.log(error)
       throw new Error(`Failed to parse OpenAPI file: ${error}`)
     }
   }

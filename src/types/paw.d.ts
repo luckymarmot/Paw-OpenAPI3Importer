@@ -1,3 +1,5 @@
+declare module 'json-schema-instantiator'
+
 declare global {
   function registerImporter(importer: any): void
   function registerCodeGenerator(generator: any): void
@@ -8,6 +10,17 @@ declare global {
   }
 
   type MapKeyedWithString<T> = { [key: string]: T }
+  type GroupedRequestType = { group: string; path: string }
+  type CreateRequestGroupType = {
+    group: string
+    paths: string[]
+  }
+  type TransformStringType = {
+    defaultValue: string
+    envManager: EnvironmentManager
+    stringInput: string
+    requestInput: Paw.Request
+  }
 
   type DynamicStringComponent = string | DynamicValue
   class DynamicString {
@@ -107,6 +120,7 @@ declare namespace Paw {
       method?: string | DynamicString | null,
       url?: string | DynamicString | null,
       description?: string | null,
+      order?: number,
     ): Request
     createRequestGroup(name: string | null): RequestGroup
     createEnvironmentDomain(name: string | null): EnvironmentDomain
@@ -501,7 +515,7 @@ declare namespace Paw {
     name: string
     uri: string
     url: string | null
-    file: ExtensionImportFile | null
+    file: ExtensionImportFile
     mimeType: string | null
     httpHeaders: object | null
     httpStatus: number | null

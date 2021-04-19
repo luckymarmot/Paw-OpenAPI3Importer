@@ -6,6 +6,7 @@
     "noImplicitAny": true,
     "module": "commonjs",
     "target": "es5",
+    "lib": ["ES2015", "ES2020"],
     "esModuleInterop": true,
     "strictNullChecks": true,
     "noEmit": true,
