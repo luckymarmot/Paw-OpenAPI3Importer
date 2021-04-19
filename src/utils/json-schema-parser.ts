@@ -1,11 +1,27 @@
+import { OpenAPIV3 } from 'openapi-types'
+
 // The JSON Object that defines the default values of certain types.
+type typesInstantiatorType =
+  | 'string'
+  | 'number'
+  | 'integer'
+  | 'null'
+  | 'boolean'
+  | 'object'
+  | 'array'
+
+type JSPOptions = {
+  requiredPropertiesOnly: boolean
+}
+
 const typesInstantiator = {
   string: '',
   number: 0,
   integer: 0,
   null: null,
-  boolean: false, // Always stay positive?
+  boolean: false, // Always stay positive? lol
   object: {},
+  array: [],
 }
 
 /**
@@ -13,9 +29,8 @@ const typesInstantiator = {
  * @param obj - an object.
  * @returns {boolean}
  */
-function isPrimitive(obj) {
-  let type = obj.type
-
+function isPrimitive(obj: OpenAPIV3.SchemaObject) {
+  let type = obj.type as typesInstantiatorType
   return typesInstantiator[type] !== undefined
 }
 
@@ -25,10 +40,10 @@ function isPrimitive(obj) {
  * @param requiredArray - the required array
  * @returns {boolean}
  */
-function isPropertyRequired(property, requiredArray) {
+function isPropertyRequired(property: string, requiredArray: any[] | any) {
   let found = false
   requiredArray = requiredArray || []
-  requiredArray.forEach(function (requiredProperty) {
+  requiredArray.forEach(function (requiredProperty: string) {
     if (requiredProperty === property) {
       found = true
     }
@@ -36,7 +51,11 @@ function isPropertyRequired(property, requiredArray) {
   return found
 }
 
-function shouldVisit(property, obj, options) {
+function shouldVisit(
+  property: any,
+  obj: OpenAPIV3.SchemaObject,
+  options: JSPOptions,
+) {
   return (
     !options.requiredPropertiesOnly ||
     (options.requiredPropertiesOnly &&
@@ -49,7 +68,7 @@ function shouldVisit(property, obj, options) {
  * @param val - The object that represents the primitive.
  * @returns {*}
  */
-function instantiatePrimitive(val) {
+function instantiatePrimitive(val: OpenAPIV3.SchemaObject): any {
   let type = val.type
 
   // Support for default values in the JSON Schema.
@@ -57,7 +76,7 @@ function instantiatePrimitive(val) {
     return val.example
   }
 
-  return typesInstantiator[type]
+  return typesInstantiator[type as typesInstantiatorType]
 }
 
 /**
@@ -65,7 +84,7 @@ function instantiatePrimitive(val) {
  * @param obj - an object.
  * @returns {boolean}
  */
-function isEnum(obj) {
+function isEnum(obj: any): boolean {
   return Object.prototype.toString.call(obj.enum) === '[object Array]'
 }
 
@@ -74,7 +93,7 @@ function isEnum(obj) {
  * @param obj - an object.
  * @returns {boolean}
  */
-function isArray(obj) {
+function isArray(obj: any): boolean {
   return Array.isArray(obj)
 }
 
@@ -85,7 +104,7 @@ function isArray(obj) {
  * Which internally also checks obj.type.
  * @param obj - An object.
  */
-function getObjectType(obj) {
+function getObjectType(obj: any): typesInstantiatorType {
   // Check if type is array of types.
   if (isArray(obj.type)) {
     obj.type = obj.type[0]
@@ -99,11 +118,12 @@ function getObjectType(obj) {
  * @param val - The object that represents the primitive.
  * @returns {*}
  */
-function instantiateEnum(val) {
+function instantiateEnum(val: any) {
   // Support for default values in the JSON Schema.
   if (val.default) {
     return val.default
   }
+
   if (!val.enum.length) {
     return undefined
   }
@@ -118,7 +138,7 @@ function instantiateEnum(val) {
  * @param ref       The reference to find.
  * @return {*}      The object representing the ref.
  */
-function findDefinition(schema, ref) {
+function findDefinition(schema: any, ref: string) {
   let propertyPath = ref.split('/').slice(1) // Ignore the #/uri at the beginning.
   let currentProperty = propertyPath.splice(0, 1)[0]
 
@@ -138,7 +158,10 @@ function findDefinition(schema, ref) {
  * @param schema - The schema to instantiate.
  * @returns {*}
  */
-function jsonSchemaParser(schema, options) {
+function jsonSchemaParser(
+  schema: OpenAPIV3.SchemaObject,
+  options: any = {},
+): any {
   options = options || {}
 
   /**
@@ -148,7 +171,11 @@ function jsonSchemaParser(schema, options) {
    * @param name - The name of the current object.
    * @param data - The instance data that represents the current object.
    */
-  function visit(obj, name, data) {
+  function visit(
+    obj: OpenAPIV3.SchemaObject | any,
+    name: string | number,
+    data: any,
+  ): any {
     if (!obj) {
       return
     }
@@ -193,9 +220,9 @@ function jsonSchemaParser(schema, options) {
     }
   }
 
-  let data = {}
-  visit(schema, '', data)
-  return data[''] as any
+  let data = { props: {} }
+  visit(schema, 'props', data)
+  return data['props'] as any
 }
 
 export default jsonSchemaParser
