@@ -9,6 +9,11 @@ import {
 } from 'utils'
 import Paw from 'types/paw.d'
 
+type ExtendedParamObject = OpenAPIV3.ParameterObject & {
+  parameterExampleValue?: any
+  variableId?: string
+}
+
 const parserOptions: SwaggerParser.Options = {
   resolve: {
     file: false,
@@ -24,7 +29,6 @@ export default class PawConverter {
   private readonly envManagers: MapKeyedWithString<EnvironmentManager> = {}
   private readonly parserOptions: SwaggerParser.Options = { ...parserOptions }
 
-  public apiDocument: OpenAPIV3.Document
   public filename: string = ''
   public apiParser: SwaggerParser
   public groupedRequest: GroupedRequestType[] = []
@@ -89,9 +93,7 @@ export default class PawConverter {
   private getEnviroment(): EnvironmentManager {
     const document = this.apiParser.api
     const { title } = document.info
-    return !this.envManagers[title]
-      ? this.setEnvironment()
-      : this.envManagers[title]
+    return this.envManagers[title]
   }
 
   /**
@@ -155,7 +157,13 @@ export default class PawConverter {
       }
 
       if (requestContext.responses) {
-        responses = requestContext.responses
+        const accepts = Object.entries(requestContext.responses)
+          .map(([key, value]) => {
+            const ctx = value as OpenAPIV3.ResponseObject
+            return ctx.content ? Object.keys(ctx.content) : []
+          })
+          .flat()
+        responses = accepts.length > 0 ? accepts : '*/*'
       }
 
       if (requestContext.servers) {
@@ -189,19 +197,12 @@ export default class PawConverter {
   private createRequest(item: any, index?: number, array?: any[]): void {
     const document = this.apiParser.api as OpenAPIV3.Document
     const { title } = document.info
+
     const request = this.context.createRequest(
       item.summary || item.path,
       item.method,
       new DynamicString(),
       item.description,
-    )
-
-    const requestURL = new PawURL(
-      document.paths[item.path] as OpenAPIV3.PathItemObject,
-      document,
-      item.path,
-      this.envManagers[title],
-      request,
     )
 
     if (item.requestBody) {
@@ -211,13 +212,39 @@ export default class PawConverter {
       )
     }
 
-    if (item.parameters) {
-      logger.log(item.parameters)
+    if (item.responses) {
+      request.setHeader('Accepts', item.responses[0])
     }
 
-    request.url = requestURL.fullUrl
+    if (item.parameters) {
+      this.setRequestParameters(item.parameters, request, this.getEnviroment())
+    }
 
+    const requestURL = new PawURL(
+      document.paths[item.path] as OpenAPIV3.PathItemObject,
+      document,
+      item.path,
+      this.getEnviroment(),
+      request,
+    )
+    request.url = requestURL.fullUrl
+    logger.log(request.getUrlParameters())
     this.requestGroups[item.group].appendChild(request)
+
+    if (requestURL.serverVariables) {
+      const envManager = this.envManagers[title]
+      const serverVars = requestURL.serverVariables
+
+      // Object.entries(serverVars).forEach(([varName, variable]) => {
+      //   const value = variable.default
+      //   envManager.setEnvironmentVariableValue(varName, value)
+      //   request.addVariable(
+      //     varName,
+      //     envManager.getDynamicString(varName),
+      //     variable.description || '',
+      //   )
+      // })
+    }
   }
 
   /**
@@ -245,22 +272,71 @@ export default class PawConverter {
   }
 
   private setRequestParameters(
-    request: Paw.Request,
     params: OpenAPIV3.ParameterObject[],
+    request: Paw.Request,
+    envManager: EnvironmentManager,
   ): Paw.Request {
-    const p = params
-      .filter((item) => !item.deprecated)
-      .map((item: OpenAPIV3.ParameterObject) => ({
-        ...item,
-        paramValue: jsonSchemaParser(item.schema, {}),
-      }))
-    // .forEach((item) => {
-    //   if (item.in === 'path') {
-    //     request.addUrlParameter(item.name, new DynamicString())
-    //   }
-    // })
+    if (params.length === 0) return request
 
-    logger.log(p)
+    function mapParameters(
+      param: ExtendedParamObject,
+      index?: number,
+      arr?: ExtendedParamObject[],
+    ): void {
+      const { name, description, parameterExampleValue, required } = param
+      const DYNAMIC_REQUEST_VARIABLE =
+        'com.luckymarmot.RequestVariableDynamicValue'
+
+      const variable = request.addVariable(
+        name,
+        parameterExampleValue,
+        description || '',
+      )
+
+      const createDynamicValue = new DynamicValue(DYNAMIC_REQUEST_VARIABLE, {
+        variableUUID: variable.id,
+      })
+
+      variable.required = required || false
+
+      if (param.in === 'path') {
+        envManager.setEnvironmentVariableValue(
+          param.name,
+          parameterExampleValue,
+        )
+        return
+      }
+      if (param.in === 'header') {
+        request.addHeader(
+          name,
+          new DynamicString(createDynamicValue) || parameterExampleValue,
+        )
+        return
+      }
+
+      if (param.in === 'query') {
+        request.addUrlParameter(
+          name,
+          new DynamicString(createDynamicValue) || parameterExampleValue,
+        )
+        return
+      }
+    }
+
+    const parameters = params
+      .filter((param: OpenAPIV3.ParameterObject) => !param.deprecated)
+      .map((parameterItem: OpenAPIV3.ParameterObject) => {
+        const schema = parameterItem.schema
+          ? jsonSchemaParser(parameterItem.schema as OpenAPIV3.SchemaObject)
+          : ''
+        return {
+          ...parameterItem,
+          parameterExampleValue: schema,
+        } as ExtendedParamObject
+      })
+
+    // attach request parameter variables here
+    parameters.forEach(mapParameters)
     return request
   }
 }

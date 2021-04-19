@@ -8,7 +8,7 @@ export default class EnvironmentManager {
   private environmentDomain: Paw.EnvironmentDomain | null
   constructor(context: Paw.Context, name?: string | null) {
     this.name = name || 'OpenAPI Environment'
-    this.envName = 'Default'
+    this.envName = name || 'Default'
     this.context = context
     this.environmentDomain = null
   }
@@ -27,7 +27,7 @@ export default class EnvironmentManager {
   }
 
   public hasEnvironmentVariable(name: string): boolean {
-    return this.getEnvironmentDomain().getVariableByName(name) != null
+    return this.getEnvironmentDomain().getVariableByName(name) !== null
   }
 
   public getEnvironmentVariable(name: string): Paw.EnvironmentVariable {
@@ -44,7 +44,7 @@ export default class EnvironmentManager {
   }
 
   public getDynamicString(variableName: string): DynamicString {
-    return createDynamicString([this.getDynamicValue(variableName)])
+    return createDynamicString(this.getDynamicValue(variableName))
   }
 
   public setEnvironmentVariableValue(

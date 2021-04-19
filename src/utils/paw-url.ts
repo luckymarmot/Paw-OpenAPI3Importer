@@ -11,26 +11,12 @@ export interface PawURLOptions {
   request: Paw.Request
 }
 
-// export default function PawURL({
-//   pathItem,
-//   openApi,
-//   pathName,
-//   envManager,
-//   request,
-// }: PawURLOptions): string | DynamicString {
-//   return ''
-// }
 export default class PawURL {
   hostname: string
-
   pathname: string
-
   port: string
-
   fullUrl: string | DynamicString
-
   serverVariables: MapKeyedWithString<OpenAPIV3.ServerVariableObject>
-
   constructor(
     pathItem: OpenAPIV3.PathItemObject,
     openApi: OpenAPIV3.Document,

@@ -1,8 +1,10 @@
 import EnvironmentManager from './environment'
 import Paw from 'types/paw'
+import logger from './console'
 
-const ENV_DYNAMIC_VALUE = 'com.luckymarmot.EnvironmentVariableDynamicValue'
-const REQ_DYNAMIC_VALUE = 'com.luckymarmot.RequestVariableDynamicValue'
+const ENVIRONMENT_DYNAMIC_VALUE =
+  'com.luckymarmot.EnvironmentVariableDynamicValue'
+const REQUEST_DYNAMIC_VALUE = 'com.luckymarmot.RequestVariableDynamicValue'
 const FILE_DYNAMIC_VALUE = 'com.luckymarmot.FileContentDynamicValue'
 
 /**
@@ -13,12 +15,10 @@ const FILE_DYNAMIC_VALUE = 'com.luckymarmot.FileContentDynamicValue'
  * @param {Object<createDynamicValueParams>} opts -
  * @returns {DynamicValue} class instance
  */
-export function createDynamicValue(
+export const createDynamicValue = (
   type: string,
-  props: { [key: string]: unknown },
-): DynamicValue {
-  return new DynamicValue(type, props)
-}
+  props?: { [key: string]: any },
+): DynamicValue => new DynamicValue(type, props)
 
 /**
  * @exports createDynamicString
@@ -28,12 +28,9 @@ export function createDynamicValue(
  * @param {Array<DynamicStringComponent>} prop
  * @returns {DynamicString} class instance
  */
-export function createDynamicString(
-  prop: DynamicStringComponent[],
-): DynamicString {
-  return new DynamicString(...prop)
-}
-
+export const createDynamicString = (
+  ...prop: DynamicStringComponent[]
+): DynamicString => new DynamicString(...prop)
 /**
  * @exports createEnvironmentValues
  * @summary
@@ -42,9 +39,12 @@ export function createDynamicString(
  * @param {String} variableUUID -
  * @returns {DynamicValue} class instance
  */
-export function createEnvDynamicValue(variableUUID: string): DynamicValue {
-  return createDynamicValue(ENV_DYNAMIC_VALUE, { variableUUID })
-}
+export const createEnvDynamicValue = (
+  environmentVariable: string,
+): DynamicValue =>
+  createDynamicValue(ENVIRONMENT_DYNAMIC_VALUE, {
+    environmentVariable,
+  })
 
 /**
  * @exports createRequestValues
@@ -54,9 +54,8 @@ export function createEnvDynamicValue(variableUUID: string): DynamicValue {
  * @param {String} variableUUID -
  * @returns {DynamicValue} class instance
  */
-export function createRequestValues(variableUUID: string): DynamicValue {
-  return createDynamicValue(REQ_DYNAMIC_VALUE, { variableUUID })
-}
+export const createRequestValues = (variableId: string) =>
+  createDynamicValue(REQUEST_DYNAMIC_VALUE, { variableId })
 
 /**
  * @exports createFileValues
@@ -64,9 +63,8 @@ export function createRequestValues(variableUUID: string): DynamicValue {
  *
  * @returns {DynamicValue} class instance
  */
-export function createFileValues(): DynamicValue {
-  return createDynamicValue(FILE_DYNAMIC_VALUE, { bookmarkData: null })
-}
+export const createFileValues = (): DynamicValue =>
+  createDynamicValue(FILE_DYNAMIC_VALUE, { bookmarkData: null })
 
 /**
  * @exports transformString
@@ -103,9 +101,9 @@ export function convertEnvString(
       components.push(envManager.getDynamicValue(match[1]))
     } else {
       let requestVariable = request.getVariableByName(match[1])
-      // Console.log('searching for ' + match[1]);
+      logger.log('searching for ' + match[1])
       if (requestVariable && requestVariable.id) {
-        // Console.log('rwn  ' + requestVariable.name);
+        logger.log('rwn  ' + requestVariable.name)
         components.push(
           new DynamicValue('com.luckymarmot.RequestVariableDynamicValue', {
             variableUUID: requestVariable.id,
@@ -129,5 +127,6 @@ export function convertEnvString(
   if (components.length === 1 && typeof components[0] === 'string') {
     return components[0]
   }
-  return createDynamicString(components)
+
+  return createDynamicString(...components)
 }
