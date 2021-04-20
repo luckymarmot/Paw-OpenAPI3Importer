@@ -1,6 +1,12 @@
-declare module 'json-schema-instantiator'
+declare module 'promise'
 
 declare global {
+  namespace NodeJS {
+    interface Global {
+      location: any
+    }
+  }
+
   function registerImporter(importer: any): void
   function registerCodeGenerator(generator: any): void
 

@@ -14,6 +14,11 @@ type ExtendedParamObject = OpenAPIV3.ParameterObject & {
   variableId?: string
 }
 
+type ExtendedSecuritySchemeObject = OpenAPIV3.SecuritySchemeObject & {
+  key: string
+  value: string[]
+}
+
 const parserOptions: SwaggerParser.Options = {
   resolve: {
     file: false,
@@ -147,6 +152,7 @@ export default class PawConverter {
       let responses = null
       let parameters = null
       let servers = null
+      let security = null
 
       if (requestContext.requestBody) {
         requestBody = requestContext.requestBody
@@ -170,6 +176,10 @@ export default class PawConverter {
         servers = requestContext.servers
       }
 
+      if (requestContext.security) {
+        security = requestContext.security
+      }
+
       return {
         path,
         group,
@@ -180,6 +190,7 @@ export default class PawConverter {
         parameters,
         responses,
         servers,
+        security,
       } as any
     })
 
@@ -212,12 +223,16 @@ export default class PawConverter {
       )
     }
 
-    if (item.responses) {
-      request.setHeader('Accepts', item.responses[0])
+    if (item.parameters) {
+      this.setRequestParameters(item.parameters, request)
     }
 
-    if (item.parameters) {
-      this.setRequestParameters(item.parameters, request, this.getEnviroment())
+    if (item.security) {
+      this.setRequestAuth(item.security, request)
+    }
+
+    if (item.responses) {
+      request.setHeader('Accepts', item.responses[0])
     }
 
     const requestURL = new PawURL(
@@ -227,8 +242,8 @@ export default class PawConverter {
       this.getEnviroment(),
       request,
     )
+
     request.url = requestURL.fullUrl
-    logger.log(request.getUrlParameters())
     this.requestGroups[item.group].appendChild(request)
 
     if (requestURL.serverVariables) {
@@ -274,16 +289,22 @@ export default class PawConverter {
   private setRequestParameters(
     params: OpenAPIV3.ParameterObject[],
     request: Paw.Request,
-    envManager: EnvironmentManager,
   ): Paw.Request {
     if (params.length === 0) return request
+    const envManager = this.getEnviroment()
 
     function mapParameters(
       param: ExtendedParamObject,
       index?: number,
       arr?: ExtendedParamObject[],
     ): void {
-      const { name, description, parameterExampleValue, required } = param
+      const {
+        name,
+        description,
+        parameterExampleValue,
+        schema,
+        required,
+      } = param
       const DYNAMIC_REQUEST_VARIABLE =
         'com.luckymarmot.RequestVariableDynamicValue'
 
@@ -292,6 +313,8 @@ export default class PawConverter {
         parameterExampleValue,
         description || '',
       )
+
+      variable.schema = schema as any
 
       const createDynamicValue = new DynamicValue(DYNAMIC_REQUEST_VARIABLE, {
         variableUUID: variable.id,
@@ -337,6 +360,75 @@ export default class PawConverter {
 
     // attach request parameter variables here
     parameters.forEach(mapParameters)
+    return request
+  }
+
+  private setRequestAuth(
+    securityTypes: OpenAPIV3.SecurityRequirementObject[],
+    request: Paw.Request,
+  ): Paw.Request {
+    const envManager = this.getEnviroment()
+    const document = this.apiParser.api as OpenAPIV3.Document
+    // Because there are no references to refer to
+    if (!document.components || !document.components.securitySchemes)
+      return request
+
+    const securitySchemes = document.components.securitySchemes as {
+      [key: string]: OpenAPIV3.SecuritySchemeObject
+    }
+
+    const security = [...securityTypes]
+      .map(
+        (
+          item: OpenAPIV3.SecurityRequirementObject,
+        ): ExtendedSecuritySchemeObject[] =>
+          Object.keys(item).map((key) => ({
+            ...securitySchemes[key],
+            value: item[key],
+            key,
+          })),
+      )
+      .flat() as ExtendedSecuritySchemeObject[]
+
+    const snakeCase = (str: string): string =>
+      str.replace(/[A-Z]/g, (cap) => `_${cap.toLowerCase()}`)
+
+    function setRequestOAuth2(item: any) {
+      if (!Object.keys(item).includes('flows')) return
+      const grantType = Object.keys(item.flows)[0] as any
+      const authFlow = item.flows[grantType]
+      request.oauth2 = {
+        client_id: '',
+        client_secret: '',
+        authorization_uri: authFlow.authorizationUrl,
+        access_token_uri: authFlow.tokenUrl,
+        redirect_uri: '',
+        scope: `'${item.value}'`,
+        state: undefined,
+        token: undefined,
+        token_prefix: undefined,
+        grant_type: snakeCase(grantType),
+      }
+    }
+
+    security.forEach((item: ExtendedSecuritySchemeObject) => {
+      if (item.type === 'http' && item.scheme === 'basic') {
+        request.httpBasicAuth = { username: '', password: '' }
+      }
+
+      if (item.type === 'oauth2') {
+        setRequestOAuth2(
+          item as ExtendedSecuritySchemeObject & OpenAPIV3.OAuth2SecurityScheme,
+        )
+      }
+
+      if (
+        (item.type === 'http' && item.scheme === 'bearer') ||
+        item.type === 'apiKey'
+      ) {
+      }
+    })
+
     return request
   }
 }

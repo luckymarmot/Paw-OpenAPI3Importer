@@ -1,4 +1,9 @@
-// grouping utilities
+/**
+ * @function mapToGroup
+ * @summary
+ * @param {Object<string>} item
+ * @returns {Object<CreateRequestGroupType>}
+ */
 export function mapToGroup(item: string): CreateRequestGroupType | null {
   const names = item.split('/')
   if (names.length === 0) return null
@@ -8,6 +13,12 @@ export function mapToGroup(item: string): CreateRequestGroupType | null {
   }
 }
 
+/**
+ * @function createGroup
+ * @summary
+ * @param {Object<CreateRequestGroupType>} item
+ * @returns {Object<CreateRequestGroupType>}
+ */
 export function mapToCapitalize(
   item: CreateRequestGroupType,
 ): CreateRequestGroupType {
@@ -17,6 +28,13 @@ export function mapToCapitalize(
   }
 }
 
+/**
+ * @function createGroup
+ * @summary
+ * @param {Array<CreateRequestGroupType>} accumulator
+ * @param {Object<CreateRequestGroupType>} current
+ * @returns {Object<CreateRequestGroupType>}
+ */
 export function createGroup(
   accumulator: CreateRequestGroupType[],
   current: CreateRequestGroupType,
@@ -41,13 +59,3 @@ export function createGroup(
   accumulator = accumulator.concat([currentObject as never])
   return accumulator
 }
-
-// request body utility
-
-// parameter utilities
-
-export function paramInHeader(): void {}
-
-export function paramInPath(): void {}
-
-export function paramInCookie(): void {}

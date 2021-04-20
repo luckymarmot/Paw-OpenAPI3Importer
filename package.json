@@ -15,6 +15,11 @@
     "build:web": "yarn ",
     "test": "jest"
   },
+  "dependencies": {
+    "@apidevtools/swagger-parser": "^10.0.2",
+    "promise": "^8.1.0",
+    "yaml": "^1.10.0"
+  },
   "devDependencies": {
     "@babel/cli": "^7.7.0",
     "@babel/core": "^7.7.0",
@@ -64,10 +69,5 @@
     "inputs": "json",
     "help": "https://github.com/luckymarmot/Paw-OpenAPI3Importer/wiki",
     "outputDir": "\"/Library/Containers/com.luckymarmot.Paw/Data/Library/Application Support/com.luckymarmot.Paw/Extensions\""
-  },
-  "dependencies": {
-    "@apidevtools/swagger-parser": "^10.0.2",
-    "promise": "^8.1.0",
-    "yaml": "^1.10.0"
   }
 }

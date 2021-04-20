@@ -4,9 +4,9 @@ import { OpenAPIV3 } from 'openapi-types'
 import Paw from 'types/paw'
 import { logger } from 'utils'
 import PawConverter from './converter'
-import PKG from '../../package.json'
+import config from '../paw.config'
 
-const { identifier, title, inputs, fileExtensions } = PKG.config
+const { identifier, title, inputs, fileExtensions } = config
 
 export default class OpenAPIv3Importer implements Paw.Importer {
   public static title = title
