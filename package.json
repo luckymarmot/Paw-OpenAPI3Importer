@@ -57,10 +57,10 @@
     "webpack-cli": "^4.6.0"
   },
   "config": {
-    "name": "OpenAPIv3Importer",
+    "name": "OpenAPIv3xImporter",
     "title": "OpenAPI v3.x Importer",
     "description": "An OpenAPI importer extension for Paw client.",
-    "identifier": "com.luckymarmot.PawExtensions.OpenAPIv3Importer",
+    "identifier": "com.luckymarmot.PawExtensions.OpenAPIv3xImporter",
     "fileExtensions": [
       "json",
       "yaml",

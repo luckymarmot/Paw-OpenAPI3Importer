@@ -6,6 +6,7 @@ import {
   logger,
   group,
   jsonSchemaParser,
+  convertEnvString,
 } from 'utils'
 import Paw from 'types/paw.d'
 
@@ -210,7 +211,7 @@ export default class PawConverter {
     const { title } = document.info
 
     const request = this.context.createRequest(
-      item.summary || item.path,
+      item.summary || item.operationId || item.path,
       item.method,
       new DynamicString(),
       item.description,
@@ -232,7 +233,7 @@ export default class PawConverter {
     }
 
     if (item.responses) {
-      request.setHeader('Accepts', item.responses[0])
+      request.setHeader('Accept', item.responses[0])
     }
 
     const requestURL = new PawURL(
@@ -280,7 +281,7 @@ export default class PawConverter {
     const schema = requestBody.content[mediaTypes[0]]
       .schema as OpenAPIV3.SchemaObject
 
-    request.body = JSON.stringify(jsonSchemaParser(schema, {}) as any, null, 2)
+    request.jsonBody = jsonSchemaParser(schema, {}) as any
     request.setHeader('Content-Type', mediaTypes[0])
 
     return request
@@ -311,10 +312,15 @@ export default class PawConverter {
       const variable = request.addVariable(
         name,
         parameterExampleValue,
-        description || '',
+        (description || '').trim(),
       )
 
-      variable.schema = schema as any
+      const _schema = {
+        ...(schema as any),
+      }
+      delete _schema.type
+      delete _schema.format
+      variable.schema = _schema
 
       const createDynamicValue = new DynamicValue(DYNAMIC_REQUEST_VARIABLE, {
         variableUUID: variable.id,
@@ -323,10 +329,7 @@ export default class PawConverter {
       variable.required = required || false
 
       if (param.in === 'path') {
-        envManager.setEnvironmentVariableValue(
-          param.name,
-          parameterExampleValue,
-        )
+        /** @todo, currently in wip */
         return
       }
       if (param.in === 'header') {
@@ -400,15 +403,12 @@ export default class PawConverter {
       request.oauth2 = {
         client_id: '',
         client_secret: '',
-        authorization_uri: authFlow.authorizationUrl,
-        access_token_uri: authFlow.tokenUrl,
+        authorization_uri: authFlow.authorizationUrl || '',
+        access_token_uri: authFlow.tokenUrl || '',
         redirect_uri: '',
         scope: `'${item.value}'`,
-        state: undefined,
-        token: undefined,
-        token_prefix: undefined,
-        grant_type: snakeCase(grantType),
-      }
+        grant_type: 'authorization_code',
+      } as any
     }
 
     security.forEach((item: ExtendedSecuritySchemeObject) => {
