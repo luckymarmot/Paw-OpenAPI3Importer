@@ -6,9 +6,15 @@
  */
 export function mapToGroup(item: string): CreateRequestGroupType | null {
   const names = item.split('/')
-  if (names.length === 0) return null
+
+  if (names.length === 0) {
+    return null
+  }
+
+  const getGroups = names.filter((str) => str !== '')
+  const group = getGroups.length > 0 ? getGroups[0] : ''
   return {
-    group: names.filter((str) => str !== '')[0],
+    group,
     paths: [item],
   }
 }
@@ -52,7 +58,7 @@ export function createGroup(
   }
 
   const currentObject: CreateRequestGroupType = {
-    group: current.group,
+    group: current.group || '',
     paths: Array.isArray(current.paths) ? [...current.paths] : current.paths,
   }
 

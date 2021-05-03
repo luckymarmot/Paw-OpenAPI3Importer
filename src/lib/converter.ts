@@ -54,6 +54,8 @@ export default class PawConverter {
 
     // set or initialize a group of requests.
     this.setRequestGroups()
+
+    logger.log(this.groupedRequest)
   }
 
   /**
@@ -117,11 +119,13 @@ export default class PawConverter {
       .map(group.mapToCapitalize)
       .reduce(group.createGroup, [])
 
-    groups.forEach((item: CreateRequestGroupType) => {
-      this.requestGroups[item.group] = this.context.createRequestGroup(
-        item.group,
-      )
-    })
+    groups
+      .filter((item: CreateRequestGroupType) => item.group.trim() !== '')
+      .forEach((item: CreateRequestGroupType) => {
+        this.requestGroups[item.group] = this.context.createRequestGroup(
+          item.group,
+        )
+      })
 
     this.groupedRequest = groups
       .map((item: CreateRequestGroupType): GroupedRequestType[] =>
@@ -245,7 +249,11 @@ export default class PawConverter {
     )
 
     request.url = requestURL.fullUrl
-    this.requestGroups[item.group].appendChild(request)
+
+    logger.log(item.group)
+    if (item.group.trim() !== '') {
+      this.requestGroups[item.group].appendChild(request)
+    }
 
     if (requestURL.serverVariables) {
       const envManager = this.envManagers[title]
