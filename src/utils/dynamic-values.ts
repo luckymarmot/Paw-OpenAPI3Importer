@@ -70,9 +70,6 @@ export const createFileValues = (): DynamicValue =>
  * @exports transformString
  * @summary
  *
- * @param {Object<TransformStringType>} opts
- * @param {String} opts.defaultValue
- * @param {EnvironmentManager} opts.envManager
  * @param {String} opts.stringInput
  * @param {Object<Paw.Request>} opts.requestInput
  *
@@ -80,8 +77,6 @@ export const createFileValues = (): DynamicValue =>
  */
 export function convertEnvString(
   s: string,
-  envManager: EnvironmentManager,
-  defaultValue: string = '',
   request: Paw.Request,
 ): string | DynamicString {
   const re = /\{([^}]+)\}/g
@@ -96,18 +91,14 @@ export function convertEnvString(
       components.push(s.substr(idx, match.index - idx))
     }
 
-    if (envManager.hasEnvironmentVariable(match[1])) {
-      envManager.setEnvironmentVariableValue(match[1], defaultValue)
-      components.push(envManager.getDynamicValue(match[1]))
-    } else {
-      let requestVariable = request.getVariableByName(match[1])
-      if (requestVariable && requestVariable.id) {
-        components.push(
-          new DynamicValue('com.luckymarmot.RequestVariableDynamicValue', {
-            variableUUID: requestVariable.id,
-          }),
-        )
-      }
+    
+    const requestVariable = request.getVariableByName(match[1])
+    if (requestVariable && requestVariable.id) {
+      components.push(
+        new DynamicValue('com.luckymarmot.RequestVariableDynamicValue', {
+          variableUUID: requestVariable.id,
+        }),
+      )
     }
 
     idx = match.index + match[0].length
