@@ -1,6 +1,13 @@
 {
   "presets": [
-    "@babel/env",
+    [
+      "@babel/env",
+      {
+        "targets": {
+          "safari": "6"
+        }
+      }
+    ],
     "@babel/typescript"
   ],
   "plugins": [
