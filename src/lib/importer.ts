@@ -75,7 +75,7 @@ export default class OpenAPIv3Importer implements Paw.Importer {
       (item: Paw.ExtensionItem): Promise<OpenAPIV3.Document> => {
         const apiParser = new SwaggerParser()
         const apiDocument = this.parseContent(item)
-        const filename = item.file.name.replace(/\.(yml|yaml|json)$/, '')
+        const filename = item.file?.name.replace(/\.(yml|yaml|json)$/, '') || item.name
         return apiParser
           .validate(apiDocument, this.parserOptions)
           .then(() => {
