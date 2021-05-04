@@ -47,8 +47,6 @@ export default class PawURL {
 
     this.fullUrl = convertEnvString(
       this.fullUrl as string,
-      envManager,
-      '',
       request,
     )
 
