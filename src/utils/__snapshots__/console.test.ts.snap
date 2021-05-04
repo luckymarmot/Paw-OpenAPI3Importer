@@ -1,0 +1,53 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`logger utility should log object and nested object 1`] = `
+[MockFunction] {
+  "calls": Array [
+    Array [
+      Object {
+        "a": "hello",
+        "b": Object {
+          "c": Object {
+            "d": "world",
+          },
+        },
+        "c": Array [
+          1,
+          2,
+          3,
+          4,
+        ],
+      },
+      Array [
+        1,
+        2,
+        3,
+        4,
+      ],
+    ],
+  ],
+  "results": Array [
+    Object {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`logger utility should log string 1`] = `
+[MockFunction] {
+  "calls": Array [
+    Array [
+      "Hello,",
+      "How are you?",
+    ],
+  ],
+  "results": Array [
+    Object {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;

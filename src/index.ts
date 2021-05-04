@@ -1,67 +1,17 @@
-import Yaml from 'yaml';
-// eslint-disable-next-line import/extensions
-import Paw from './types-paw-api/paw';
-// eslint-disable-next-line import/extensions
-import OpenAPI from './types-paw-api/openapi';
-import OpenAPIToPawConverter from './lib/openapi-to-paw-converter/openapi-to-paw-converter';
+import { OpenAPIv3Importer } from './lib'
 
-class OpenAPIImporter implements Paw.Importer {
-  static identifier = 'com.luckymarmot.PawExtensions.OpenAPIImporter';
+// add Promise to the global scope
+// Note: we've tried with many Babel polyfills but it just causes
+// bugs when the script is loaded.
+import Promise from 'promise'
+global.Promise = Promise as any
 
-  static title = 'OpenAPI 3.0';
+// Swagger Importer relies on `window.location`.
+// But since we're not in a web browser, it isn't available.
+// `global` here would be an alias to `window`, so we make this hack
+// to allow Swagger Importer to work.
+global.location = {
+    href: '',
+} as any
 
-  converter: OpenAPIToPawConverter;
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public canImport(context: Paw.Context, items: Paw.ExtensionItem[]): number {
-    return items.reduce((acc, item) => {
-      try {
-        const openApi = this.parseExtensionItem(item);
-
-        return (
-          openApi.openapi.substr(0, 3) === '3.0' // allowed versions 3.0.*
-          && typeof openApi.info === 'object'
-          && typeof openApi.paths === 'object'
-          && Object.keys(openApi.paths).length > 0
-        );
-      } catch (error) {
-        return 0;
-      }
-    }, true) ? 1 : 0;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public import(
-    context: Paw.Context,
-    items: Paw.ExtensionItem[],
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    options: Paw.ExtensionOption,
-  ): boolean {
-    this.converter = new OpenAPIToPawConverter(context);
-
-    items.forEach((item) => {
-      let openApi: OpenAPI.OpenAPIObject;
-
-      try {
-        openApi = this.parseExtensionItem(item);
-      } catch (error) {
-        throw new Error('Invalid OpenAPI file');
-      }
-
-      const fileName = openApi.info.title ?? item.file?.name ?? 'OpenAPI 3.0 import';
-      this.converter.convert(openApi, fileName);
-    });
-
-    return true;
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  private parseExtensionItem(item: Paw.ExtensionItem): OpenAPI.OpenAPIObject {
-    if (item.mimeType === 'application/json') {
-      return JSON.parse(item.content) as OpenAPI.OpenAPIObject;
-    }
-    return Yaml.parse(item.content) as OpenAPI.OpenAPIObject;
-  }
-}
-
-registerImporter(OpenAPIImporter);
+registerImporter(OpenAPIv3Importer)

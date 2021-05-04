@@ -1,18 +1,24 @@
 {
   "compilerOptions": {
+    "resolveJsonModule": true,
     "outDir": "./dist/",
     "sourceMap": true,
     "noImplicitAny": true,
     "module": "commonjs",
     "target": "es5",
-    "declaration": true,
-    "allowSyntheticDefaultImports": true,
+    "lib": ["ES2015", "ES2020"],
     "esModuleInterop": true,
     "strictNullChecks": true,
     "noEmit": true,
-    "removeComments": true
+    "baseUrl": "src",
+    "paths": {
+      "~": ["src/*"],
+      "lib": ["src/lib"],
+      "types": ["src/types"]
+    },
+    "noErrorTruncation": true,
+    "skipLibCheck": true,
+    "pretty": true
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": ["src", "paw.config.json"]
 }
