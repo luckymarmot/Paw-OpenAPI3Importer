@@ -54,8 +54,6 @@ export default class PawConverter {
 
     // set or initialize a group of requests.
     this.setRequestGroups()
-
-    logger.log(this.groupedRequest)
   }
 
   /**
@@ -250,24 +248,8 @@ export default class PawConverter {
 
     request.url = requestURL.fullUrl
 
-    logger.log(item.group)
     if (item.group.trim() !== '') {
       this.requestGroups[item.group].appendChild(request)
-    }
-
-    if (requestURL.serverVariables) {
-      const envManager = this.envManagers[title]
-      const serverVars = requestURL.serverVariables
-
-      // Object.entries(serverVars).forEach(([varName, variable]) => {
-      //   const value = variable.default
-      //   envManager.setEnvironmentVariableValue(varName, value)
-      //   request.addVariable(
-      //     varName,
-      //     envManager.getDynamicString(varName),
-      //     variable.description || '',
-      //   )
-      // })
     }
   }
 

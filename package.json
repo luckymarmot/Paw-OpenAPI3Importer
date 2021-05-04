@@ -1,7 +1,7 @@
 {
   "name": "openapi-v3-importer",
-  "productName": "",
-  "version": "0.0.9",
+  "productName": "OpenAPIv3Importer",
+  "version": "0.1.0-beta",
   "description": "A Paw Extension to import OpenAPI 3.x.x files into Paw",
   "main": "src/index.ts",
   "license": "MIT",
@@ -57,8 +57,8 @@
     "webpack-cli": "^4.6.0"
   },
   "config": {
-    "name": "OpenAPIv3xImporter",
-    "title": "OpenAPI v3.x Importer",
+    "name": "OpenAPIv3xImporter-beta",
+    "title": "OpenAPI v3.x Importer (beta)",
     "description": "An OpenAPI importer extension for Paw client.",
     "identifier": "com.luckymarmot.PawExtensions.OpenAPIv3xImporter",
     "fileExtensions": [
