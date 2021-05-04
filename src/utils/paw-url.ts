@@ -16,7 +16,7 @@ export default class PawURL {
   pathname: string
   port: string
   fullUrl: string | DynamicString
-  serverVariables: MapKeyedWithString<OpenAPIV3.ServerVariableObject>
+
   constructor(
     pathItem: OpenAPIV3.PathItemObject,
     openApi: OpenAPIV3.Document,
@@ -41,13 +41,10 @@ export default class PawURL {
       server = openApi.servers[0]
     }
 
-    if (server.variables) {
-      this.serverVariables = server.variables
-    }
-
     this.fullUrl = convertEnvString(
       this.fullUrl as string,
       request,
+      envManager,
     )
 
     if (typeof this.fullUrl === 'string') {

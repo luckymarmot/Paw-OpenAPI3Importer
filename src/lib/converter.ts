@@ -65,6 +65,10 @@ export default class PawConverter {
    * @returns {Object<OpenAPIV3.Document>}
    */
   public init(): OpenAPIV3.Document<{}> {
+    // import server variables
+    this.importServers()
+
+    // import groups
     this.groupedRequest
       .map(({ path, group }: GroupedRequestType): any =>
         this.createRequestMeta(path, group),
@@ -420,5 +424,27 @@ export default class PawConverter {
     })
 
     return request
+  }
+
+  /**
+   * Imports server variables into environment variables.
+   * Use the default value for the server object.
+   */
+  private importServers() {
+    const document = this.apiParser.api as OpenAPIV3.Document
+    if (document.servers) {
+      document.servers.forEach((serverObject) => {
+        if (serverObject.variables) {
+          Object.entries(serverObject.variables).forEach(([variableName, variableObject]) => {
+            this.getEnviroment()
+              .setEnvironmentVariableValue(
+                variableName,
+                variableObject.default || '',
+                true /* only assign if value is empty */,
+              )
+          })
+        }
+      })
+    }
   }
 }

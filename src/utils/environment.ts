@@ -27,7 +27,7 @@ export default class EnvironmentManager {
   }
 
   public hasEnvironmentVariable(name: string): boolean {
-    return this.getEnvironmentDomain().getVariableByName(name) !== null
+    return !!this.getEnvironmentDomain().getVariableByName(name)
   }
 
   public getEnvironmentVariable(name: string): Paw.EnvironmentVariable {
@@ -50,11 +50,12 @@ export default class EnvironmentManager {
   public setEnvironmentVariableValue(
     variableName: string,
     variableValue: string,
+    onlyIfEmpty?: boolean,
   ) {
     const env = this.getEnvironmentDomain().getEnvironmentByName(this.envName)
-
-    const varMap: MapKeyedWithString<string> = {}
-    varMap[variableName] = variableValue
-    env?.setVariablesValues(varMap)
+    const variable = this.getEnvironmentVariable(variableName)
+    if (env && variable && (!onlyIfEmpty || !variable.getValue(env))) {
+      variable.setValue(variableValue, env)
+    }
   }
 }
