@@ -22,7 +22,7 @@ externalDocs:
   description: Find out more about Swagger
   url: http://swagger.io
 servers:
-  - url: https://petstore3.swagger.io/api/v3
+  - url: 'https://petstore3.swagger.io/api/v3'
 tags:
   - name: pet
     description: Everything about your Pets
@@ -602,22 +602,6 @@ paths:
           description: Invalid username supplied
         '404':
           description: User not found
-  '/secret':
-    post:
-      summary: Return secret string
-      operationId: secretSecret
-      responses:
-        '200':
-          description: secret response
-          content:
-            applicatiion/json':
-              schema:
-                '$ref': '#/components/schemas/User'
-      security:
-        - basic:
-            - username
-            - password
-
 components:
   schemas:
     Order:
@@ -821,6 +805,3 @@ components:
       type: apiKey
       name: api_key
       in: header
-    basic:
-      type: http
-      scheme: basic

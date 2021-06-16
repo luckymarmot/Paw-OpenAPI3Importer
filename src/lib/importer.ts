@@ -22,7 +22,7 @@ export default class OpenAPIv3Importer implements Paw.Importer {
       file: false,
     },
     dereference: {
-      circular: false,
+      circular: true,
     },
   }
 
@@ -44,7 +44,7 @@ export default class OpenAPIv3Importer implements Paw.Importer {
       const doc = this.parseContent(item) as OpenAPIV3.Document
       if (!doc) return 0
       return (
-        doc.openapi.substr(0, 1) === '3' && // allowed versions 3.x.*
+        doc.openapi.substr(0, 1) === '3.0' && // allowed versions 3.0.x.*
         typeof doc.info === 'object' &&
         typeof doc.paths === 'object' &&
         Object.keys(doc.paths).length > 0
@@ -75,7 +75,8 @@ export default class OpenAPIv3Importer implements Paw.Importer {
       (item: Paw.ExtensionItem): Promise<OpenAPIV3.Document> => {
         const apiParser = new SwaggerParser()
         const apiDocument = this.parseContent(item)
-        const filename = item.file?.name.replace(/\.(yml|yaml|json)$/, '') || item.name
+        const filename =
+          item.file?.name.replace(/\.(yml|yaml|json)$/, '') || item.name
         return apiParser
           .validate(apiDocument, this.parserOptions)
           .then(() => {

@@ -1,7 +1,7 @@
 {
   "name": "openapi-v3-importer",
   "productName": "OpenAPIv3Importer",
-  "version": "0.1.0-beta",
+  "version": "0.1.0-beta.1",
   "description": "A Paw Extension to import OpenAPI 3.x.x files into Paw",
   "main": "src/index.ts",
   "license": "MIT",
