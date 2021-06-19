@@ -435,14 +435,15 @@ export default class PawConverter {
     if (document.servers) {
       document.servers.forEach((serverObject) => {
         if (serverObject.variables) {
-          Object.entries(serverObject.variables).forEach(([variableName, variableObject]) => {
-            this.getEnviroment()
-              .setEnvironmentVariableValue(
+          Object.entries(serverObject.variables).forEach(
+            ([variableName, variableObject]) => {
+              this.getEnviroment().setEnvironmentVariableValue(
                 variableName,
                 variableObject.default || '',
                 true /* only assign if value is empty */,
               )
-          })
+            },
+          )
         }
       })
     }

@@ -6,7 +6,7 @@ const { name, identifier } = PKG.config
 const webpackConfig = {
   target: 'webworker',
   devtool: 'none',
-  entry: './src/index.ts',
+  entry: ['./src/index.ts'],
   stats: {
     outputPath: true,
     maxModules: 1,

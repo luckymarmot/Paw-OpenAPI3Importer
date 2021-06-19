@@ -2,6 +2,7 @@ import { OpenAPIV3 } from 'openapi-types'
 import Paw from 'types/paw'
 import EnvironmentManager from './environment'
 import { convertEnvString } from './dynamic-values'
+import logger from './console'
 
 export interface PawURLOptions {
   openApi: OpenAPIV3.Document
@@ -12,11 +13,11 @@ export interface PawURLOptions {
 }
 
 export default class PawURL {
-  hostname: string
-  pathname: string
-  port: string
-  fullUrl: string | DynamicString
-
+  public hostname: string
+  public pathname: string
+  public port: string
+  public fullUrl: string | DynamicString
+  public defaultURL = 'https://echo.paw.cloud'
   constructor(
     pathItem: OpenAPIV3.PathItemObject,
     openApi: OpenAPIV3.Document,
@@ -24,79 +25,38 @@ export default class PawURL {
     envManager: EnvironmentManager,
     request: Paw.Request,
   ) {
-    let server: OpenAPIV3.ServerObject = { url: '' }
-    let match: RegExpMatchArray | null = []
+    let baseURL = this.createURL()
 
     if (pathItem.servers && pathItem.servers.length > 0) {
-      this.fullUrl = `${PawURL.removeSlashFromEnd(
-        pathItem.servers[0].url,
-      )}${pathName}`
-      // eslint-disable-next-line prefer-destructuring
-      server = pathItem.servers[0]
-    } else if (openApi.servers && openApi.servers.length > 0) {
-      this.fullUrl = `${PawURL.removeSlashFromEnd(
-        openApi.servers[0].url,
-      )}${pathName}`
-      // eslint-disable-next-line prefer-destructuring
-      server = openApi.servers[0]
+      baseURL = this.createURL(pathItem.servers[0].url)
+      logger.log(baseURL.href)
     }
 
-    this.fullUrl = convertEnvString(
-      this.fullUrl as string,
-      request,
-      envManager,
-    )
-
-    if (typeof this.fullUrl === 'string') {
-      match = this.fullUrl.match(
-        /^([^:]+):\/\/([^:/]+)(?::([0-9]*))?(?:(\/.*))?$/i,
-      )
-    } else {
-      match = (this.fullUrl as DynamicString)
-        .getEvaluatedString()
-        .match(/^([^:]+):\/\/([^:/]+)(?::([0-9]*))?(?:(\/.*))?$/i)
+    if (openApi.servers && openApi.servers.length > 0) {
+      baseURL = this.createURL(openApi.servers[0].url)
     }
 
-    if (match) {
-      if (match[2]) {
-        let host = 'http'
-        if (match[1]) {
-          // eslint-disable-next-line prefer-destructuring
-          host = match[1]
-        }
+    baseURL.pathname += pathName
 
-        this.hostname = PawURL.addSlashAtEnd(`${host}://${match[2]}`)
-      }
-
-      if (match[3]) {
-        // eslint-disable-next-line prefer-destructuring
-        this.port = match[3]
-      }
-
-      if (match[4]) {
-        this.pathname = PawURL.addSlashAtEnd(match[4]).replace(
-          new RegExp('//', 'g'),
-          '/',
-        )
-      } else {
-        this.pathname = '/'
-      }
+    if (/^(\/\/)/g.test(baseURL.pathname)) {
+      baseURL.pathname = baseURL.pathname.replace(/^(\/\/)/g, '/')
     }
+
+    const url = baseURL.href.replace(/%7B/g, '{').replace(/%7D/g, '}') + '/'
+    this.hostname = baseURL.hostname
+    this.pathname = baseURL.pathname
+    this.port = baseURL.port
+
+    this.fullUrl = convertEnvString(url, request, envManager) as DynamicString
+    return this
   }
 
-  static addSlashAtEnd(variable: string): string {
-    if (variable[variable.length - 1] !== '/') {
-      return `${variable}/`
+  public createURL(url?: string): URL {
+    if (!url) return new URL(this.defaultURL)
+    try {
+      return new URL(url)
+    } catch (error) {
+      return new URL(url, this.defaultURL)
     }
-
-    return variable
-  }
-
-  static removeSlashFromEnd(variable: string): string {
-    if (variable[variable.length - 1] === '/') {
-      return variable.substr(0, variable.length - 1)
-    }
-
-    return variable
   }
 }
