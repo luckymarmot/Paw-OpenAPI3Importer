@@ -16,7 +16,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@apidevtools/swagger-parser": "^10.0.2",
+    "@apidevtools/swagger-parser": "^10.0.3",
     "promise": "^8.1.0",
     "yaml": "^1.10.0"
   },
