@@ -6,7 +6,8 @@ import {
   logger,
   group,
   jsonSchemaParser,
-  convertEnvString,
+  createEnvDynamicValue,
+  createDynamicString,
 } from 'utils'
 import Paw from 'types/paw.d'
 
@@ -29,11 +30,24 @@ const parserOptions: SwaggerParser.Options = {
   },
 }
 
+function validURL(urlstring: string): URL {
+  try {
+    const url = new URL(urlstring, 'https://echo.paw.cloud')
+    return url
+  } catch (err) {
+    return new URL('https://echo.paw.cloud')
+  }
+}
+
 export default class PawConverter {
   private readonly context: Paw.Context
   private readonly requestGroups: MapKeyedWithString<Paw.RequestGroup> = {}
   private readonly envManagers: MapKeyedWithString<EnvironmentManager> = {}
   private readonly parserOptions: SwaggerParser.Options = { ...parserOptions }
+
+  private envDomain!: Paw.EnvironmentDomain
+  private env!: Paw.Environment
+  private baseURL: string[] = []
 
   public filename: string = ''
   public apiParser: SwaggerParser
@@ -48,6 +62,23 @@ export default class PawConverter {
      * @see {@link https://github.com/APIDevTools/swagger-parser/blob/master/docs/swagger-parser.md#api}
      */
     this.apiParser = parser
+
+    const document = this.apiParser.api
+    const { title } = document.info
+
+    this.envDomain =
+      this.context.getEnvironmentDomainByName(title ?? 'Default Group') ??
+      this.context.createEnvironmentDomain(title ?? 'Default Group')
+
+    this.env =
+      this.envDomain.getEnvironmentByName('Production') ||
+      this.envDomain.createEnvironment('Production')
+
+    const baseURL =
+      this.envDomain.getVariableByName('baseURL') ||
+      this.envDomain.createEnvironmentVariable('baseURL')
+
+    baseURL.setValue('https://echo.paw.cloud', this.env)
 
     // set or initialize the import's environment.
     this.setEnvironment()
@@ -89,7 +120,10 @@ export default class PawConverter {
     const document = this.apiParser.api
     const { title } = document.info
     if (!this.envManagers[title]) {
-      this.envManagers[title] = new EnvironmentManager(this.context, title)
+      this.envManagers[title] = new EnvironmentManager(
+        this.context,
+        title ?? 'Default Group',
+      )
       return this.envManagers[title]
     }
     return this.envManagers[title]
@@ -214,8 +248,6 @@ export default class PawConverter {
    */
   private createRequest(item: any, index?: number, array?: any[]): void {
     const document = this.apiParser.api as OpenAPIV3.Document
-    const { title } = document.info
-
     const request = this.context.createRequest(
       item.summary || item.operationId || item.path,
       item.method,
@@ -248,9 +280,16 @@ export default class PawConverter {
       item.path,
       this.getEnviroment(),
       request,
-    )
+    ).fullUrl
 
-    request.url = requestURL.fullUrl
+    const enVarBaseURL = this.envDomain.getVariableByName(
+      'baseURL',
+    ) as Paw.EnvironmentVariable
+
+    request.url = createDynamicString(
+      createEnvDynamicValue(enVarBaseURL.id),
+      requestURL,
+    )
 
     if (item.group.trim() !== '') {
       this.requestGroups[item.group].appendChild(request)
@@ -262,7 +301,7 @@ export default class PawConverter {
    * @summary
    *
    * @param requestBody
-   * @returns {Object<Paw.Request>}
+   * @returns {Object<Paw.Request>}ss
    */
   private setRequesBody(
     request: Paw.Request,
@@ -286,8 +325,6 @@ export default class PawConverter {
     request: Paw.Request,
   ): Paw.Request {
     if (params.length === 0) return request
-    const envManager = this.getEnviroment()
-
     function mapParameters(
       param: ExtendedParamObject,
       index?: number,
@@ -364,7 +401,6 @@ export default class PawConverter {
     securityTypes: OpenAPIV3.SecurityRequirementObject[],
     request: Paw.Request,
   ): Paw.Request {
-    const envManager = this.getEnviroment()
     const document = this.apiParser.api as OpenAPIV3.Document
     // Because there are no references to refer to
     if (!document.components || !document.components.securitySchemes)
@@ -433,7 +469,7 @@ export default class PawConverter {
   private importServers() {
     const document = this.apiParser.api as OpenAPIV3.Document
     if (document.servers) {
-      document.servers.forEach((serverObject) => {
+      document.servers.forEach((serverObject, index, arr) => {
         if (serverObject.variables) {
           Object.entries(serverObject.variables).forEach(
             ([variableName, variableObject]) => {
@@ -444,6 +480,21 @@ export default class PawConverter {
               )
             },
           )
+        } else {
+          let envVar
+
+          if (arr.length > 2) {
+            envVar =
+              this.envDomain.getVariableByName('baseURL-' + (index + 1)) ??
+              this.envDomain.createEnvironmentVariable('baseURL-' + (index + 1))
+          } else {
+            envVar =
+              this.envDomain.getVariableByName('baseURL') ??
+              this.envDomain.createEnvironmentVariable('baseURL')
+          }
+
+          envVar.setCurrentValue(validURL(serverObject.url).href)
+          // this.baseURL.push(envVar.id)
         }
       })
     }
