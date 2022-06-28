@@ -7,7 +7,7 @@ export default class EnvironmentManager {
   private context: Paw.Context
   private environmentDomain: Paw.EnvironmentDomain | null
   constructor(context: Paw.Context, name?: string | null) {
-    this.name = name || 'OpenAPI Environment'
+    this.name = name || 'Default Group'
     this.envName = name || 'Default'
     this.context = context
     this.environmentDomain = null
@@ -16,13 +16,10 @@ export default class EnvironmentManager {
   private getEnvironmentDomain(): Paw.EnvironmentDomain {
     const context = this.context
 
-    if (!this.environmentDomain) {
-      this.environmentDomain = context.getEnvironmentDomainByName(this.name)
-      if (!this.environmentDomain) {
-        this.environmentDomain = context.createEnvironmentDomain(this.name)
-        this.environmentDomain.createEnvironment(this.envName)
-      }
-    }
+    this.environmentDomain =
+      context.getEnvironmentDomainByName(this.name) ??
+      context.createEnvironmentDomain(this.name)
+
     return this.environmentDomain
   }
 

@@ -43,11 +43,18 @@ export default class PawURL {
     }
 
     const url = baseURL.href.replace(/%7B/g, '{').replace(/%7D/g, '}') + '/'
+
     this.hostname = baseURL.hostname
-    this.pathname = baseURL.pathname
+    this.pathname =
+      baseURL.pathname.replace(/%7B/g, '{').replace(/%7D/g, '}') + '/'
+
     this.port = baseURL.port
 
-    this.fullUrl = convertEnvString(url, request, envManager) as DynamicString
+    this.fullUrl = convertEnvString(
+      this.pathname,
+      request,
+      envManager,
+    ) as DynamicString
     return this
   }
 

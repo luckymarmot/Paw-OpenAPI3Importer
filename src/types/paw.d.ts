@@ -28,7 +28,7 @@ declare global {
     requestInput: Paw.Request
   }
 
-  type DynamicStringComponent = string | DynamicValue
+  type DynamicStringComponent = string | DynamicValue | DynamicString
   class DynamicString {
     length: number
     components: DynamicStringComponent[]

@@ -90,7 +90,7 @@ export function convertEnvString(
   while ((match = re.exec(s))) {
     // push any string here before
     if (match.index > idx) {
-      components.push(s.substr(idx, match.index - idx))
+      components.push(s.substring(idx, match.index - idx))
     }
 
     if (envManager.hasEnvironmentVariable(match[1])) {
@@ -112,7 +112,7 @@ export function convertEnvString(
 
   // add remaining string
   if (idx < s.length) {
-    components.push(s.substr(idx))
+    components.push(s.substring(idx))
   }
 
   // return

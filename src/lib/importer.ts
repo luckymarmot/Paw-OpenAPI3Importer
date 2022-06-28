@@ -47,7 +47,7 @@ export default class OpenAPIv3Importer implements Paw.Importer {
       if (!doc || !doc.openapi) return 0
 
       return (
-        doc.openapi.substr(0, 1) === '3.0' && // allowed versions 3.0.x.*
+        doc.openapi.substring(0, 1) === '3.0' && // allowed versions 3.0.x.*
         typeof doc.info === 'object' &&
         typeof doc.paths === 'object' &&
         Object.keys(doc.paths).length > 0
