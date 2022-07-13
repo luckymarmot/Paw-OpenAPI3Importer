@@ -19,8 +19,10 @@ export default class OpenAPIv3Importer implements Paw.Importer {
    *  - swarggger parser options
    */
   private parserOptions: SwaggerParser.Options = {
+    continueOnError: true,
     resolve: {
       file: false,
+      http: false,
     },
     dereference: {
       circular: true,
@@ -85,7 +87,6 @@ export default class OpenAPIv3Importer implements Paw.Importer {
         const apiParser = new SwaggerParser()
         const filename =
           item.file?.name.replace(/\.(yml|yaml|json)$/, '') || item.name
-
         apiParser
           .validate(doc, this.parserOptions)
           .then(() => {
