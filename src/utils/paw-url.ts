@@ -42,11 +42,11 @@ export default class PawURL {
       baseURL.pathname = baseURL.pathname.replace(/^(\/\/)/g, '/')
     }
 
-    const url = baseURL.href.replace(/%7B/g, '{').replace(/%7D/g, '}') + '/'
+    const url = baseURL.href.replace(/%7B/g, '{').replace(/%7D/g, '}')
 
     this.hostname = baseURL.hostname
     this.pathname =
-      baseURL.pathname.replace(/%7B/g, '{').replace(/%7D/g, '}') + '/'
+      baseURL.pathname.replace(/%7B/g, '{').replace(/%7D/g, '}')
 
     this.port = baseURL.port
 
