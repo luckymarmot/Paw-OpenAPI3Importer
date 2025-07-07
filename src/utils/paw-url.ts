@@ -28,12 +28,12 @@ export default class PawURL {
     let baseURL = this.createURL()
 
     if (pathItem.servers && pathItem.servers.length > 0) {
-      baseURL = this.createURL(pathItem.servers[0].url)
+      baseURL = this.createURL(pathItem.servers)
       logger.log(baseURL.href)
     }
 
     if (openApi.servers && openApi.servers.length > 0) {
-      baseURL = this.createURL(openApi.servers[0].url)
+      baseURL = this.createURL(openApi.servers)
     }
 
     baseURL.pathname += pathName
@@ -58,12 +58,15 @@ export default class PawURL {
     return this
   }
 
-  public createURL(url?: string): URL {
-    if (!url) return new URL(this.defaultURL)
-    try {
-      return new URL(url)
-    } catch (error) {
-      return new URL(url, this.defaultURL)
+  public createURL(servers?: OpenAPIV3.ServerObject[]): URL {
+    if (!servers || servers.length === 0) return new URL(this.defaultURL)
+    servers.forEach(server => {
+      try {
+        return new URL(server.url)
+      } catch (error) {
+      }
     }
+    )
+    return new URL(this.defaultURL)
   }
 }
