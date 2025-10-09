@@ -401,6 +401,8 @@ export default class PawConverter {
     securityTypes: OpenAPIV3.SecurityRequirementObject[],
     request: Paw.Request,
   ): Paw.Request {
+    let enVarTokenURL: Paw.EnvironmentVariable | null = null
+
     const document = this.apiParser.api as OpenAPIV3.Document
     // Because there are no references to refer to
     if (!document.components || !document.components.securitySchemes)
@@ -452,10 +454,19 @@ export default class PawConverter {
         )
       }
 
-      if (
+    if (
         (item.type === 'http' && item.scheme === 'bearer') ||
         item.type === 'apiKey'
       ) {
+        if (!enVarTokenURL) {
+          enVarTokenURL =
+            this.envDomain.getVariableByName('token') ||
+            this.envDomain.createEnvironmentVariable('token');
+        }
+        request.addHeader('Authorization', createDynamicString(
+          "Bearer ",
+          createEnvDynamicValue(enVarTokenURL.id),
+        ))
       }
     })
 
@@ -474,7 +485,10 @@ export default class PawConverter {
           return
         }
 
-        const envVar = this.envDomain.createEnvironmentVariable('baseURL')
+        const envVar = (
+          this.envDomain.getVariableByName('baseURL') ||
+          this.envDomain.createEnvironmentVariable('baseURL')
+        )
 
         let href = validURL(serverObject.url).href;
 
