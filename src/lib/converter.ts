@@ -470,32 +470,22 @@ export default class PawConverter {
     const document = this.apiParser.api as OpenAPIV3.Document
     if (document.servers) {
       document.servers.forEach((serverObject, index, arr) => {
-        if (serverObject.variables) {
-          Object.entries(serverObject.variables).forEach(
-            ([variableName, variableObject]) => {
-              this.getEnviroment().setEnvironmentVariableValue(
-                variableName,
-                variableObject.default || '',
-                true /* only assign if value is empty */,
-              )
-            },
-          )
-        } else {
-          let envVar
-
-          if (arr.length > 2) {
-            envVar =
-              this.envDomain.getVariableByName('baseURL-' + (index + 1)) ??
-              this.envDomain.createEnvironmentVariable('baseURL-' + (index + 1))
-          } else {
-            envVar =
-              this.envDomain.getVariableByName('baseURL') ??
-              this.envDomain.createEnvironmentVariable('baseURL')
-          }
-
-          envVar.setCurrentValue(validURL(serverObject.url).href)
-          // this.baseURL.push(envVar.id)
+        if (arr.length === 0) {
+          return
         }
+
+        const envVar = this.envDomain.createEnvironmentVariable('baseURL')
+
+        let href = validURL(serverObject.url).href;
+
+        // Remove trailing slash from href if present
+        if (href.endsWith('/')) {
+          href = href.slice(0, -1);
+        }
+
+        envVar.setCurrentValue(href)
+
+        this.baseURL.push(envVar.id)
       })
     }
   }
